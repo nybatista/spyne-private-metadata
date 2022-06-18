@@ -133,8 +133,14 @@ import {includes, __, ifElse, path, prop, reject, is, isNil, isEmpty} from 'ramd
  */
 
 export class DomElementTemplate {
-  constructor(template, data) {
+  constructor(template, data={}) {
     this.template = this.formatTemplate(template);
+    this.isProxyData = data.__cms__isProxy === true;
+
+    if (this.isProxyData === true){
+      //data['cmsId'] = data.__cms__dataId;
+      this.template = DomElementTemplate.formatTemplateForProxyData(this.template);
+    }
 
     const checkForArrayData = ()=>{
       if (is(Array, data) === true) {
@@ -149,24 +155,98 @@ export class DomElementTemplate {
 
     this.templateData = data;
 
-
     let strArr = DomElementTemplate.getStringArray(this.template);
-
 
     let strMatches = this.template.match(DomElementTemplate.findTmplLoopsRE());
     strMatches = strMatches === null ? [] : strMatches;
 
     const parseTmplLoopsRE = DomElementTemplate.parseTmplLoopsRE();
-    const parseTmplLoopFn =  this.parseTheTmplLoop.bind(this);
-    const mapTmplLoop = (str, data) => str.replace(parseTmplLoopsRE, parseTmplLoopFn);
-    const findTmplLoopsPred = includes(__, strMatches);
 
+    const parseTmplLoopFn =  this.parseTheTmplLoop.bind(this);
+
+    const mapTmplLoop = (str, data) => {
+      return str.replace(parseTmplLoopsRE, parseTmplLoopFn);
+    }
+
+    const findTmplLoopsPred = includes(__, strMatches);
     const checkForMatches = ifElse(
-      findTmplLoopsPred,
-      mapTmplLoop,
-      this.addParams.bind(this));
+        findTmplLoopsPred,
+        mapTmplLoop,
+        this.addParams.bind(this));
 
     this.finalArr = strArr.map(checkForMatches);
+
+  }
+
+  static isPrimitiveTag(str){
+    return  /({{\.\*?}})/.test(str);;
+  }
+
+
+  // ADD PARAMS TO TRACK PROXY DATA
+  static formatTemplateForProxyData (tmpl){
+
+    const re = /({{#[\w.]+}}[\w\n\s\W]+?{{\/[\w.]+}})/gm;
+    const reLines2 = /(({{(?!loopNum|loopIndex))(.*?)(}}))/gm;
+    const reLines1 = /(?<=>)(.*?)(({{)(.*)(}}))/gm
+
+    // CREATE VALUES FOR __cms__dataId && original key
+    const formatCmsParam = (str) => {
+      const isArrPrimitive = DomElementTemplate.isPrimitiveTag(str);
+
+      const getKeyAndDataId = (s)=>{
+        const re = /({{)([\w_\-\.]+(\.))*?(\w+)(}})/gm;
+        let dataId = '__cms__dataId';
+        const key = isArrPrimitive ? '{{loopIndex}}' : String(s).replace(re, "$4")
+        if (/(\w\.)/.test(s)){
+          dataId = String(s).replace(re, "$2")+dataId;
+        }
+        return {key, dataId}
+      }
+
+      const {key, dataId} = getKeyAndDataId(str);
+
+      let prefix = `<spyne-cms-item data-cms-id="{{${dataId}}}" data-cms-key="${key}"`
+
+      // IF AN ARRAY PRIMITIVE CHECK FOR ORIGINAL ARRAY POSITION
+      if (isArrPrimitive) {
+        prefix += ` data-cms-orig-key="{{origKey}}"`;
+      }
+
+      // CREATE PROXY TAG
+      const suffix = "</spyne-cms-item>";
+      const param =  isArrPrimitive ? "{{spyneLoopKey}}" : str;
+      return `${prefix}>${param}${suffix}`;
+
+    }
+
+    const reSwapTags = (str, m1, m2, m3) => {
+      return formatCmsParam(str);
+    }
+
+    const reMethod = (str, m1, m2, m3, m4) => {
+      const m2Updated = String(m2).replace(reLines2, reSwapTags);
+      return `${m1}${m2Updated}`
+    }
+
+
+    return String(tmpl).replace(reLines1, reMethod);
+
+  }
+
+
+  // FIND CORRECT NESTED DATA
+  static getNestedDataReducer(data={}, param=""){
+
+    const dataReducer = (nestedData, str) =>{
+
+      if (nestedData[str]){
+        return nestedData[str];
+      }
+      return nestedData;
+    }
+
+    return String(param).split('.').reduce(dataReducer,data)
 
   }
 
@@ -174,15 +254,18 @@ export class DomElementTemplate {
     let strArr = template.split(DomElementTemplate.findTmplLoopsRE());
     const emptyRE = /^([\\n\s\W]+)$/;
     const filterOutEmptyStrings = s => s.match(emptyRE);
-    return reject(filterOutEmptyStrings, strArr);
+    const finalStr =  reject(filterOutEmptyStrings, strArr);
+
+    return finalStr;
+
   }
 
   static findTmplLoopsRE() {
-    return /({{#\w+}}[\w\n\s\W]+?{{\/\w+}})/gm;
+    return /({{#[\w.]+}}[\w\n\s\W]+?{{\/[\w.]+}})/gm;
   }
 
   static parseTmplLoopsRE() {
-    return /({{#(\w+)}})([\w\n\s\W]+?)({{\/\2}})/gm;
+    return /({{#([\w.]+)}})([\w\n\s\W]+?)({{\/\2}})/gm;
   }
 
   static swapParamsForTagsRE() {
@@ -196,10 +279,10 @@ export class DomElementTemplate {
   }
 
 
-    /**
-     *
-     * @desc Returns a document fragment generated from the template and any added data.
-     */
+  /**
+   *
+   * @desc Returns a document fragment generated from the template and any added data.
+   */
 
 
   renderDocFrag() {
@@ -207,7 +290,7 @@ export class DomElementTemplate {
     const isTableSubTag =   /^([^>]*?)(<){1}(\b)(thead|col|colgroup|tbody|td|tfoot|tr|th)(\b)([^\0]*)$/.test(html);
     const el = isTableSubTag ? html : document.createRange().createContextualFragment(html);
 
-      window.setTimeout(this.removeThis(), 2);
+    window.setTimeout(this.removeThis(), 2);
     return el;
 
   }
@@ -233,52 +316,97 @@ export class DomElementTemplate {
   }
 
   addParams(str) {
-    //console.time(this.tempL+'9')
     const re = /(\.)/gm;
-
     const replaceTags = (str, p1, p2, p3) => {
-      if (re.test(p2) === false && this.templateData[p2] !==undefined){
-        return this.templateData[p2];
-      }
-      return this.getDataValFromPathStr(p2, this.templateData);
+      return DomElementTemplate.getNestedDataReducer(this.templateData, p2);
     };
-
-   return str.replace(DomElementTemplate.swapParamsForTagsRE(), replaceTags);
+    return str.replace(DomElementTemplate.swapParamsForTagsRE(), replaceTags);
 
   }
 
-  parseTheTmplLoop(str, p1, p2, p3) {
 
-    //console.time(this.tempL+'5b')
+
+
+  parseTheTmplLoop(str, p1, p2, p3) {
+    const dotConverter = str=>`${str.replace(/(\.)/g, "][")}`
     const reDot = /(\.)/gm;
     const subStr = p3;
-    let elData = this.templateData[p2];
-    const parseString = (item, str) => {
+
+    const dataReducer = (acc, str) =>{
+      acc = acc[str];
+      return acc;
+    }
+
+
+    let elData = DomElementTemplate.getNestedDataReducer(this.templateData, p2);
+
+    const arrayStringToObjAdapter = (d,str, i)=>{
+
+      // IF {{.}} RUN parseString
+      if (DomElementTemplate.isPrimitiveTag(str)){
+        return parseString(d, str, i);
+      }
+
+      // CREATE DATA OBJ -- CHECK TO ADD PROXY VALUES
+      const createDataObj = ()=>{
+        const spyneLoopKey = d;
+        const loopIndex = i;
+        const loopNum = i+1;
+
+        if (this.isProxyData) {
+          const __cms__dataId = elData.__cms__dataId;
+          const keyIdStr = `__cms__keyFor_${d}`
+          const origKey = elData[keyIdStr];
+          return {spyneLoopKey, __cms__dataId, origKey, loopIndex, loopNum, d}
+
+        }
+        return {spyneLoopKey, loopIndex, loopNum};
+      }
+
+      return parseObject(createDataObj(), str, i);
+    }
+
+    const parseString = (item, str, index, origIndex) => {
       return str.replace(DomElementTemplate.swapParamsForTagsRE(), item);
     };
-    const parseObject = (obj, str) => {
+
+
+    // PARSING ARRAYS AND OBJECTS
+    const parseObject = (obj, str, i) => {
+      /// LOOP NUMBER VALUES AUTO ADDED
+
+      //const loopIndex = i;
+      //const loopNum = i+1;
+
       const loopObj = (str, p1, p2) => {
         // DOT SYNTAX CHECK
-        if (reDot.test(p2) === false && obj[p2] !==undefined) {
-          return obj[p2]
+        const hash = {
+          loopIndex: i,
+          loopNum: i+1
         }
 
-        return this.getDataValFromPathStr(p2, obj);
+        // IF {{.}}
+        if (reDot.test(p2) === false && obj[p2] !==undefined) {
+          return hash[p2] !== undefined ? hash[p2] : obj[p2]
+        }
+
+        const dataReducedVal  = this.getDataValFromPathStr(p2, obj);
+        return hash[p2] !== undefined ? hash[p2] : dataReducedVal
       };
       return str.replace(DomElementTemplate.swapParamsForTagsRE(), loopObj);
     };
-    const mapStringData = (d) => typeof(d) === 'string' ? parseString(d, subStr) : parseObject(d, subStr);
 
+    const mapStringData = (d, i) => typeof(d) === 'string' ? arrayStringToObjAdapter(d, subStr,  i) : parseObject(d, subStr, i);
 
     if (isNil(elData) === true || isEmpty(elData)) {
       return '';
     }
 
     if (elData.length===undefined) {
-          elData = [elData];
-      }
+      elData = [elData];
+    }
 
-     return elData.map(mapStringData).join('');
+    return elData.map(mapStringData).join('');
 
 
   }

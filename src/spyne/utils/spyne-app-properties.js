@@ -5,9 +5,10 @@ import {path} from 'ramda';
 
 let _config;
 let _channels;
-let _channelsMap
+let _channelsMap;
 let _initialized = false;
 let _debug = true;
+const _proxiesMap = new Map();;
 
 const _spynePluginMethods = new SpynePluginsMethods();
 
@@ -160,6 +161,20 @@ class SpyneAppPropertiesClass{
     }
 
 
+  }
+
+
+
+  registerProxyReviver(name, method){
+    _proxiesMap.set(name, method);
+    console.log("REGISTERD PROXY REVIVER",_proxiesMap, _proxiesMap.get(name));
+
+  }
+
+  getProxyReviver(proxyName){
+    console.log("GET PROXY REVIVER", {_proxiesMap, proxyName}, ' --- ',_proxiesMap.get(proxyName));
+
+    return _proxiesMap.get(proxyName);
   }
 
   getPluginConfigByPluginName(pluginName){
