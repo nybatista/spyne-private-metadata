@@ -237,17 +237,13 @@ export class DomElementTemplate {
 
   // FIND CORRECT NESTED DATA
   static getNestedDataReducer(data={}, param=""){
-
     const dataReducer = (nestedData, str) =>{
-
       if (nestedData[str]){
         return nestedData[str];
       }
       return nestedData;
     }
-
-    return String(param).split('.').reduce(dataReducer,data)
-
+    return  /(\.)/gm.test(String(param)) ?  String(param).split('.').reduce(dataReducer,data) : data[param];
   }
 
   static getStringArray(template) {

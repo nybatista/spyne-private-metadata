@@ -31,7 +31,7 @@ describe('DomElTemplate', () => {
     let data = {dog: {
         sound: 'woof'
       }};
-    let template = "<h1>The dog says {{#dog}}{{sound}}{{/dog}}";
+    let template = "<h1>The dog says {{#dog}}{{sound}}{{/dog}}</h1>";
     let domElTemplate = new DomElementTemplate(template, data);
     let render = domElTemplate.renderDocFrag();
     expect(render.firstElementChild.innerText).to.equal('The dog says woof');

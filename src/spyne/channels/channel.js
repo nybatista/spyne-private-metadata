@@ -401,6 +401,13 @@ export class Channel {
   }
 
 
+  static checkForNotTrackFlag(props={}){
+    if (props.doNotTrack === true){
+      SpyneAppProperties.doNotTrackChannel(props.channelName);
+    }
+
+
+  }
 
 
 
