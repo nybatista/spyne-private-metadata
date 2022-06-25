@@ -177,13 +177,11 @@ class SpyneAppPropertiesClass{
 
   registerProxyReviver(name, method){
     _proxiesMap.set(name, method);
-    console.log("REGISTERD PROXY REVIVER",_proxiesMap, _proxiesMap.get(name));
+    //console.log("REGISTERD PROXY REVIVER",_proxiesMap, _proxiesMap.get(name));
 
   }
 
   getProxyReviver(proxyName){
-    console.log("GET PROXY REVIVER", {_proxiesMap, proxyName}, ' --- ',_proxiesMap.get(proxyName));
-
     return _proxiesMap.get(proxyName);
   }
 

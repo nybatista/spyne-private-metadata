@@ -28,8 +28,6 @@ const  cmsDataReviveNestedProxyObj = (proxyObj, proxyReviverMethod) => {
     console.error('object is not proxy object ',proxyObj);
   }
 
-  console.log('proxy name is ',__proxy__proxyName);
-
   const cloneNestedProxyObj = (target, pathArr)=>{
     const nestedProxyObj = path(pathArr, proxyObj);
     const {__proxy__isProxy, __proxy__props} = nestedProxyObj;
