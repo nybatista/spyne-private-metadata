@@ -47,7 +47,7 @@ export class ChannelFetchUtil {
    */
 
 
-  constructor(options, subscriber, testMode) {
+  constructor(options, subscriber, testMode, CHANNEL_NAME) {
 
     const testSubscriber = (p) => console.log('FETCH RETURNED ', p);
 
@@ -57,6 +57,7 @@ export class ChannelFetchUtil {
     this._serverOptions = ChannelFetchUtil.setServerOptions(options);
     this._subscriber = subscriber !== undefined ? subscriber : testSubscriber;
     this.debug = options.debug !== undefined ? options.debug : false;
+    this.channelName = CHANNEL_NAME;
 
     let fetchProps = {
       mapFn: this.mapFn,
@@ -66,18 +67,28 @@ export class ChannelFetchUtil {
       debug: this.debug
     };
     if (testMode !== true) {
-      ChannelFetchUtil.startWindowFetch(fetchProps, this._subscriber);
+      console.log("CHANNEL NAME IS ",this.channelName, CHANNEL_NAME);
+      ChannelFetchUtil.startWindowFetch(fetchProps, this._subscriber, this.channelName);
     }
   }
 
-  static startWindowFetch(props, subscriber) {
+  static startWindowFetch(props, subscriber, channelName) {
     let { mapFn, url, serverOptions, responseType, debug } = props;
-    const tapLogDebug = p => console.log('DEBUG FETCH :', p);
+    const tapLogDebug = p => console.log('DEBUG FETCH :', p, {url, serverOptions, responseType, channelName});
     const tapLog = debug === true ? tapLogDebug : () => {};
+
+    const mapWrapper = (mapMethod)=>{
+      const metadata = {channelName, url, responseType, serverOptions}
+
+      return (data)=>{
+        return mapMethod(data, metadata);
+      }
+
+    }
 
     let response$ = from(window.fetch(url, serverOptions))
     .pipe(tap(tapLog), flatMap(r => from(r[responseType]())),
-        map(mapFn),
+        map(mapWrapper(mapFn)),
         publish());
 
     response$.connect();

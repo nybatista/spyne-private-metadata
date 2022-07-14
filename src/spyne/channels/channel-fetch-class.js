@@ -100,7 +100,7 @@ export class ChannelFetch extends Channel {
 
   startFetch(options = {}, subscriber = this.onFetchReturned.bind(this)) {
     let fetchProps = this.consolidateAllFetchProps(options);
-    return new ChannelFetchUtil(fetchProps, subscriber);
+    return new ChannelFetchUtil(fetchProps, subscriber, false, this.props.name);
   }
 
   onFetchUpdate(evt) {
