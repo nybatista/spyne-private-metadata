@@ -1,6 +1,7 @@
 import { baseCoreMixins } from '../utils/mixins/base-core-mixins';
 import {SpyneAppProperties} from '../utils/spyne-app-properties';
 import { deepMerge } from '../utils/deep-merge';
+import {safeClone} from '../utils/safe-clone';
 import {
   findStrOrRegexMatchStr,
   getConstructorName
@@ -1287,7 +1288,7 @@ export class ViewStream {
       if (/CHANNEL_LIFECYCLE/.test(action)===false){
         Object.defineProperties(data, {
           payload: {
-            get: ()=> clone(pl)
+            get: ()=> safeClone(pl)
 
           }
         })

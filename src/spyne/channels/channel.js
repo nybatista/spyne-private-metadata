@@ -295,7 +295,7 @@ export class Channel {
     //console.log("INCOMING ",{action, payload, srcElement}, {obj});
     const mergeProps = (d) => mergeAll([d, { action: prop('action', d) }, prop('payload', d), prop('srcElement', d)]);
     let dataObj = obsVal => ({
-      props: () => mergeProps(obj.data),
+      clone: () => mergeProps(obj.data),
       action, payload, srcElement,
       event: obsVal
     });

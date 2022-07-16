@@ -67,7 +67,6 @@ export class ChannelFetchUtil {
       debug: this.debug
     };
     if (testMode !== true) {
-      console.log("CHANNEL NAME IS ",this.channelName, CHANNEL_NAME);
       ChannelFetchUtil.startWindowFetch(fetchProps, this._subscriber, this.channelName);
     }
   }
