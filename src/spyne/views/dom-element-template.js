@@ -216,7 +216,7 @@ export class DomElementTemplate {
       // CREATE PROXY TAG
       const suffix = "</spyne-cms-item>";
       const param =  isArrPrimitive ? "{{spyneLoopKey}}" : str;
-      return `${prefix}>${param}${suffix}`;
+      return `${prefix}><spyne-cms-item-hitbox></spyne-cms-item-hitbox><spyne-cms-item-text>${param}</spyne-cms-item-text>${suffix}`;
 
     }
 
