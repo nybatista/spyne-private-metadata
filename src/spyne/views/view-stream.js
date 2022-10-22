@@ -892,6 +892,13 @@ export class ViewStream {
     this.renderViewAndAttachToDom(node, 'dom', 'appendChild');
   }
 
+  appendToDomAfter(node){
+    if (this.props.el !== undefined){
+      console.warn(`Spyne Warning: The ViewStream, ${this.props.name}, has an element, ${this.props.el}, that is already rendered and does not need to be appendedToDomAfter. This may create unsusual side effects!`)
+    }
+    this.renderViewAndAttachToDom(node, 'dom', 'after');
+  }
+
   /**
    * Prepends the current ViewStream object to an existing dom element.
    * @param {HTMLElement} node the ViewStream child that is to be attached.
