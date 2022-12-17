@@ -940,6 +940,10 @@ export class ViewStream {
     this.exchangeViewsWithChild(v, this.setAttachData('appendChild', query));
   }
 
+  appendViewAfter(v, query) {
+    this.exchangeViewsWithChild(v, this.setAttachData('after', query));
+  }
+
   /**
    * This method appends a child ViewStream object to a parent ViewStream object.
    * @param {ViewStream} v the ViewStream parent.
