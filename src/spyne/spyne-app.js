@@ -3,7 +3,7 @@ import {ViewStream} from './views/view-stream';
 import {SpyneAppProperties} from './utils/spyne-app-properties';
 import {deepMerge} from './utils/deep-merge';
 const _channels = new ChannelsMap();
-const version = '0.19.0c';
+const version = '0.19.2';
 
 class SpyneApplication {
   /**
@@ -41,7 +41,7 @@ class SpyneApplication {
   init(config = {}, testMode=false) {
     //this.channels = new ChannelsMap();
     /*!
-     * Spyne 0.19.0c
+     * Spyne 0.19.2
      * https://spynejs.org
      *
      * @license Copyright 2017-2021, Frank Batista, Relevant Context, LLC. All rights reserved.
