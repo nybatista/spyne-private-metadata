@@ -1,5 +1,6 @@
 import {includes, __, ifElse, path, prop, reject, is, isNil, isEmpty} from 'ramda';
 
+
 /**
  * @module DomElTemplate
  * @type util
@@ -188,7 +189,18 @@ export class DomElementTemplate {
 
     const re = /({{#[\w.]+}}[\w\n\s\W]+?{{\/[\w.]+}})/gm;
     const reLines2 = /(({{(?!loopNum|loopIndex))(.*?)(}}))/gm;
-    const reLines1 = /(?<=>)(.*?)(({{)(.*)(}}))/gm
+
+
+    let reLines1 = /(NOTSUPPORTED)/gm;
+    try {
+      const reStr = "(?<=>)(.*?)(({{)(.*)(}}))";
+      reLines1 = new RegExp(reStr, 'gm');
+    } catch(e){
+      console.warn("SAFARI BROWSER BUG: CMS unavailable, since Safari does not support Lookbehind regex assertion.");
+    }
+
+
+    //const reLines1 = /(?<=>)(.*?)(({{)(.*)(}}))/gm;
 
     // CREATE VALUES FOR __cms__dataId && original key
     const formatCmsParam = (str) => {
