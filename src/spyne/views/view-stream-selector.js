@@ -33,7 +33,7 @@ function testSelectors(cxt, str, verboseBool) {
   const elIsDomElement = compose(lte(0), defaultTo(-1),
       prop('nodeType'));
 
-  if (elIsDomElement(el) === false) {
+  if (el !== null && elIsDomElement(el) === false) {
     console.warn(`Spyne Warning: the el object is not a valid single element, ${el}`);
     return;
   }
