@@ -61,7 +61,7 @@ export class SpyneUtilsChannelRoute {
         let pathsChanged = chain(createPred('changed'), getPropsState);
         let pathsAdded = chain(createPred('added'), getPropsState);
         let pathsRemoved = chain(createPred('removed'), getPropsState);
-        // console.log("GET KEYS ", pathsChanged);
+         console.log("GET KEYS ", pathsAdded, pathsRemoved, pathsChanged);
         obj1 = obj2;
         return { pathsAdded, pathsRemoved, pathsChanged };
       },
