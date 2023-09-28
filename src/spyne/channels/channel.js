@@ -84,7 +84,7 @@ export class Channel {
     this.checkForPersistentDataMode = Channel.checkForPersistentDataMode.bind(this);
     this.observer$ = this.props['observer'] = observer$;
     let dispatcherStream$ = this.streamsController.getStream('DISPATCHER');
-    const payloadPredByChannelName = propEq('name', props.name)
+    const payloadPredByChannelName = propEq(props.name, 'name')
     dispatcherStream$.pipe(filter(payloadPredByChannelName)).subscribe((val) => this.onReceivedObservable(val));
   }
 

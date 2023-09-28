@@ -136,7 +136,7 @@ export class ChannelFetchUtil {
 
   static updateMethodWhenBodyExists(opts) {
     const hasBody = has('body');
-    const methodIsGet = propEq('method', 'GET');
+    const methodIsGet = propEq('GET', 'method');
     const pred = allPass([hasBody, methodIsGet]);
     return when(pred, assoc('method', 'POST'))(opts);
   }
