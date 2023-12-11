@@ -52,11 +52,14 @@ class SpyneAppPropertiesClass{
 
   initialize(defaultConfig={}, config={}, channelsMap){
     _channels = channelsMap;
-    let userConfig = config;
-    if (config.channels && config.channels.ROUTE) {
-       userConfig = SpyneUtilsChannelRoute.conformRouteObject(config);
+    _config = deepMerge(defaultConfig, config);
+    //console.log("config is ", { defaultConfig,config });
+    if (_config.channels && _config.channels.ROUTE) {
+      _config = SpyneUtilsChannelRoute.conformRouteObject(_config);
     }
-    _config = deepMerge(defaultConfig, userConfig);
+
+    let userConfig = _config;
+
     _debug = _config.debug!== undefined ? _config.debug : _debug;
     this.getChannelActions = _channels.getChannelActions.bind(_channels);
     this.listRegisteredChannels = _channels.listRegisteredChannels.bind(_channels);

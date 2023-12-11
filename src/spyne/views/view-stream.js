@@ -1,3 +1,4 @@
+
 import { baseCoreMixins } from '../utils/mixins/base-core-mixins';
 import {SpyneAppProperties} from '../utils/spyne-app-properties';
 import { deepMerge } from '../utils/deep-merge';
@@ -150,6 +151,7 @@ export class ViewStream {
   constructor(props = {}) {
     this.vsnum = Math.random();
     this.addMixins();
+    this._postRenderCalled = false;
     this.defaults = () => {
       const vsid = this.createId();
       const id = props.id ? props.id : vsid;
@@ -1041,6 +1043,11 @@ export class ViewStream {
   }
 
   postRender() {
+
+    if (this._postRenderedCalled === true){
+      return;
+    }
+
     this.beforeAfterRender();
     this.afterRender();
 
@@ -1062,6 +1069,8 @@ export class ViewStream {
     this.viewsStreamBroadcaster = new ViewStreamBroadcaster(this.props,
         this.broadcastEvents.bind(this));
     this.afterBroadcastEvents();
+
+    this._postRenderedCalled = true;
   }
 
   addTraits(traits){

@@ -46,7 +46,24 @@ describe('DomElTemplate', () => {
     let render = domElTemplate.renderDocFrag();
    expect(render.firstElementChild.innerText).to.equal('');
   });
-
+  it('DomElementTemplate Template show not render null objects with non-looped data', ()=>{
+    let data = {cat: {
+        sound: 'woof'
+      }};
+    let template = "<article><h1>The dog says {{test.sound}}</h1></article>";
+    let domElTemplate = new DomElementTemplate(template, data);
+    let render = domElTemplate.renderDocFrag();
+    expect(render.firstElementChild.innerText).to.equal('The dog says ');
+  });
+  it('DomElementTemplate Template show not render null values with non-looped data', ()=>{
+    let data = {cat: {
+        sound: 'woof'
+      }};
+    let template = "<article><h1>The dog says {{asdf}}</h1></article>";
+    let domElTemplate = new DomElementTemplate(template, data);
+    let render = domElTemplate.renderDocFrag();
+    expect(render.firstElementChild.innerText).to.equal('The dog says ');
+  });
   it('DomElementTemplate Template show not render null values', ()=>{
     let data = {animals: [
         { name: 'dog',
