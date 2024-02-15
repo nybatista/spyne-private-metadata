@@ -245,7 +245,7 @@ function ViewStreamSelector(cxt, str) {
       const addClass = item => item.classList.add(c);
       arr.forEach(addClass);
     };
-    window.setTimeout(delayAddClass, 1);
+    //window.setTimeout(delayAddClass, 1);
   };
 
 

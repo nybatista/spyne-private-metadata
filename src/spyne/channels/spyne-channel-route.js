@@ -237,14 +237,16 @@ export class SpyneChannelRoute extends Channel {
     let eventCount = path(['state', 'routeCount'], evt);
     let isHistoryCount = is(Number, eventCount) === true;
     let payload = this.getDataFromString(config, isHistoryCount);
-     if (isHistoryCount===true){
-       payload.routeCount = eventCount;
-     }
-     // ===============================================================
-
+    if (isHistoryCount===true){
+      payload.routeCount = eventCount;
+    }
+    // ===============================================================
+    if (actn === "CHANNEL_ROUTE_DEEPLINK_EVENT"){
+      payload['linksData'] = prop('routeDatasetsArr', config);
+    }
     let keywordArrs = this.compareRouteKeywords.compare(payload.routeData, payload.paths);
     payload = rMerge(payload, keywordArrs);
-      this.sendChannelPayload(action, payload, undefined, evt, this.navToStream$);
+    this.sendChannelPayload(action, payload, undefined, evt, this.navToStream$);
 
   }
 

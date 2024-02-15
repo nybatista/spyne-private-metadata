@@ -315,7 +315,7 @@ export class DomElementTemplate {
   }
 
   formatTemplate(template) {
-    return prop('nodeName', template)==='SCRIPT' ? template.innerHTML : template;
+    return ['SCRIPT', 'TEMPLATE'].includes(prop('nodeName', template)) === true ? template.innerHTML : template;
   }
 
   getDataValFromPathStr(pathStr, dataFile){
