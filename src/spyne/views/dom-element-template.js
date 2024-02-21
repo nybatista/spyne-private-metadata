@@ -256,7 +256,7 @@ export class DomElementTemplate {
       return typeof nestedData === 'string' ? nestedData : '';
     }
 
-    return  /(\.)/gm.test(String(param)) ?  String(param).split('.').reduce(dataReducer,data) : data[param] || '';
+    return  /(\.)/gm.test(String(param)) ?  String(param).split('.').reduce(dataReducer,data) : data[param] ?? '';
   }
 
   static getStringArray(template) {

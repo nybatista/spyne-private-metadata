@@ -46,6 +46,14 @@ describe('DomElTemplate', () => {
     let render = domElTemplate.renderDocFrag();
    expect(render.firstElementChild.innerText).to.equal('');
   });
+  it('DomElementTemplate Template should render 0 as non-empty',()=>{
+
+    let data = {scriptNum:0, eventType:"scriptContent", tabName:"MyTab"};
+    let template = `<button data-event-type="{{eventType}}" data-script-num="{{scriptNum}}" >{{scriptNum}}</button>`
+    let domElTemplate = new DomElementTemplate(template, data);
+    let render = domElTemplate.renderDocFrag();
+    expect(render.firstElementChild.innerText).to.equal("0");
+  });
   it('DomElementTemplate Template show not render null objects with non-looped data', ()=>{
     let data = {cat: {
         sound: 'woof'
