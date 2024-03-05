@@ -66,7 +66,7 @@ export class SpyneUtilsChannelWindow {
   }
 
   static createMergedObsFromObj(config) {
-    let mediaQueriesObj = config.mediaQueries || config.mediqQueries;
+    let mediaQueriesObj = config.mediaQueries || config.mediaQueries;
     let arr = [];
 
     const loopQueries = (val, key, obj) => {

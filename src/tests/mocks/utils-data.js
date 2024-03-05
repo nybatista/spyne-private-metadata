@@ -2,7 +2,7 @@ const SpyneConfigData = {
 
   channels: {
     WINDOW: {
-      mediqQueries: {
+      mediaQueries: {
         'test' : '(max-width: 500px)',
         'newTest' : '(max-width: 800px)'
       },

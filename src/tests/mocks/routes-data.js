@@ -5,7 +5,7 @@ const mainConfigPostProcessedData = {
   "debug": true,
   "channels": {
     "WINDOW": {
-      "mediqQueries": {
+      "mediaQueries": {
         "showMenuDrawer": "(max-width: 768px)"
       },
       "events": [
@@ -76,7 +76,7 @@ const mainConfigPreProcessedData = {
   "debug": true,
   "channels": {
     "WINDOW": {
-      "mediqQueries": {
+      "mediaQueries": {
         "showMenuDrawer": "(max-width: 768px)"
       },
       "events": [

@@ -74,7 +74,7 @@ class SpyneApplication {
       tmp: {},
       channels: {
         WINDOW: {
-          mediqQueries: {
+          mediaQueries: {
 
           },
           events: [],
@@ -82,6 +82,7 @@ class SpyneApplication {
           listenForOrientation: true,
           listenForScroll: false,
           listenForMouseWheel: false,
+          listenForWheel: false,
           debounceMSTimeForResize: 200,
           debounceMSTimeForScroll: 150
         },

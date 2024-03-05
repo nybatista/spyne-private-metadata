@@ -242,9 +242,15 @@ function ViewStreamSelector(cxt, str) {
   selector.addAnimClass = (c)=>{
     const delayAddClass = ()=>{
       let arr = getNodeListArray(cxt, str);
-      const addClass = item => item.classList.add(c);
+      const addClass = item => {
+        try {
+          item.classList.add(c);
+        } catch(e){
+        }
+      };
       arr.forEach(addClass);
     };
+    requestAnimationFrame(delayAddClass);
     //window.setTimeout(delayAddClass, 1);
   };
 

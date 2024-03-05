@@ -29,12 +29,9 @@ export class SpyneChannelUI extends Channel {
 
   addRegisteredActions() {
     return [
-      'CHANNEL_UI_DOMACTIVATE_EVENT',
       'CHANNEL_UI_DOMCONTENTLOADED_EVENT',
-      'CHANNEL_UI_DOMMOUSESCROLL_EVENT',
       'CHANNEL_UI_ABORT_EVENT',
       'CHANNEL_UI_ACTIVATE_EVENT',
-      'CHANNEL_UI_ADDSTREAM_EVENT',
       'CHANNEL_UI_ADDTRACK_EVENT',
       'CHANNEL_UI_AFTERPRINT_EVENT',
       'CHANNEL_UI_AFTERSCRIPTEXECUTE_EVENT',
@@ -44,12 +41,10 @@ export class SpyneChannelUI extends Channel {
       'CHANNEL_UI_ANIMATIONSTART_EVENT',
       'CHANNEL_UI_APPINSTALLED_EVENT',
       'CHANNEL_UI_AUDIOEND_EVENT',
-      'CHANNEL_UI_AUDIOPROCESS_EVENT',
       'CHANNEL_UI_AUDIOSTART_EVENT',
       'CHANNEL_UI_AUXCLICK_EVENT',
       'CHANNEL_UI_BEFOREINPUT_EVENT',
       'CHANNEL_UI_BEFOREPRINT_EVENT',
-      'CHANNEL_UI_BEFORESCRIPTEXECUTE_EVENT',
       'CHANNEL_UI_BEFOREUNLOAD_EVENT',
       'CHANNEL_UI_BEGINEVENT_EVENT',
       'CHANNEL_UI_BLOCKED_EVENT',
@@ -116,7 +111,6 @@ export class SpyneChannelUI extends Channel {
       'CHANNEL_UI_INSTALL_EVENT',
       'CHANNEL_UI_INVALID_EVENT',
       'CHANNEL_UI_KEYDOWN_EVENT',
-      'CHANNEL_UI_KEYPRESS_EVENT',
       'CHANNEL_UI_KEYUP_EVENT',
       'CHANNEL_UI_LANGUAGECHANGE_EVENT',
       'CHANNEL_UI_LEAVEPICTUREINPICTURE_EVENT',
@@ -137,7 +131,6 @@ export class SpyneChannelUI extends Channel {
       'CHANNEL_UI_MOUSEOUT_EVENT',
       'CHANNEL_UI_MOUSEOVER_EVENT',
       'CHANNEL_UI_MOUSEUP_EVENT',
-      'CHANNEL_UI_MOUSEWHEEL_EVENT',
       'CHANNEL_UI_MUTE_EVENT',
       'CHANNEL_UI_NEGOTIATIONNEEDED_EVENT',
       'CHANNEL_UI_NOMATCH_EVENT',
@@ -271,7 +264,7 @@ export class SpyneChannelUI extends Channel {
   }
 
   onKeyPressed(evt) {
-    console.log('key is ', evt);
+    //console.log('key is ', evt);
   }
   static removeSSID(pl){
     const routeLens = lensProp(['payload']);

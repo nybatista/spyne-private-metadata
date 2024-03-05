@@ -7,14 +7,14 @@ const domData = SpyneConfigData.channels.WINDOW;
 describe('channel dom util tests', () => {
   describe('channel dom media queries', () => {
     it('should create media query', () => {
-      let queryStr = domData.mediqQueries.test;
+      let queryStr = domData.mediaQueries.test;
       let mq = SpyneUtilsChannelWindow.createMediaQuery(queryStr);
       let mqMatchesQuery = SpyneUtilsChannelWindow.checkIfValidMediaQuery(mq, queryStr);
       expect(mqMatchesQuery).to.be.equal(true);
     });
 
     it('should create media query observable', () => {
-      let queryStr = domData.mediqQueries.test;
+      let queryStr = domData.mediaQueries.test;
       let mq = SpyneUtilsChannelWindow.createMediaQuery(queryStr);
       let obs$ = SpyneUtilsChannelWindow.createMediaQueryHandler(mq, 'test');
       return true;

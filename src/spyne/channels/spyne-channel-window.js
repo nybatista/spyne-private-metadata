@@ -56,7 +56,7 @@ export class SpyneChannelWindow extends Channel {
 
 
   static getMouseWheelMapFn(event) {
-    let action = this.channelActions.CHANNEL_WINDOW_MOUSEWHEEL_EVENT;
+    let action = this.channelActions.CHANNEL_WINDOW_WHEEL_EVENT;
     let scrollDir = event.deltaY <= 0 ? 'up' : 'down';
     let { deltaX, deltaY, deltaZ } = event;
     let payload = { scrollDir, deltaX, deltaY, deltaZ };
@@ -109,7 +109,7 @@ export class SpyneChannelWindow extends Channel {
   createMouseWheelObservable(config) {
     const debounceT = config.debounceMSTimeForScroll;
 
-    return SpyneUtilsChannelWindow.createDomObservableFromEvent('mousewheel',
+    return SpyneUtilsChannelWindow.createDomObservableFromEvent('wheel',
       SpyneChannelWindow.getMouseWheelMapFn.bind(this))
     .pipe(
         debounceTime(debounceT)
@@ -208,7 +208,7 @@ export class SpyneChannelWindow extends Channel {
     // ==========================================
     config['listenForMediaQueries'] = checkIfObjIsNotEmptyOrNil(
       config.mediaQueries) || checkIfObjIsNotEmptyOrNil(
-        config.mediqQueries);
+        config.mediaQueries);
 
     // =========================================
 
@@ -216,7 +216,7 @@ export class SpyneChannelWindow extends Channel {
       'listenForResize': this.createResizeObservable.bind(this),
       'listenForOrientation': this.createOrientationObservable.bind(this),
       'listenForScroll': this.createScrollObservable.bind(this),
-      'listenForMouseWheel': this.createMouseWheelObservable.bind(this)
+      'listenForWheel': this.createMouseWheelObservable.bind(this)
     };
 
     const addObservableToArr = (method, key, i) => {
