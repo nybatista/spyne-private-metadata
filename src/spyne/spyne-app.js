@@ -2,6 +2,9 @@ import {ChannelsMap} from './channels/channels-map';
 import {ViewStream} from './views/view-stream';
 import {SpyneAppProperties} from './utils/spyne-app-properties';
 import {deepMerge} from './utils/deep-merge';
+import {sanitizeHTMLConfigure} from './utils/sanitize-html';
+import sanitizeHTML from './utils/sanitize-html';
+//import { sanitizeHTML } from './spyne';
 const _channels = new ChannelsMap();
 const version = '0.19.5';
 
@@ -68,6 +71,7 @@ class SpyneApplication {
       scrollLockX: 31,
       scrollLockY: 0,
       debug: false,
+      strict: false,
       plugins:{
 
       },
@@ -103,10 +107,10 @@ class SpyneApplication {
     };
     if (config !== undefined) {
        config = SpyneAppProperties.initialize(defaultConfig, config, _channels);
+       console.log("SPYNE APP PROPS ",SpyneAppProperties);
       //window.Spyne = this;
       //window.Spyne['config'] = deepMerge(defaultConfig, config)
     }
-
     this.pluginsFn = SpyneAppProperties.getPluginsMethodObj(config['pluginMethods']);
     this.getChannelActions = (str) => _channels.getChannelActions(str);
     this.registerChannel = (val) => _channels.registerStream(val);
@@ -121,6 +125,10 @@ class SpyneApplication {
        window.Spyne = {version};
     }
 
+    sanitizeHTMLConfigure(SpyneAppProperties.config);
+
+
+    //console.log("spyneappprops config ", sanitizeHTML('<div>Your HTML content</div>'));
 
   }
 

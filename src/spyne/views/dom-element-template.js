@@ -1,5 +1,5 @@
 import {includes, __, ifElse, path, prop, reject, is, isNil, isEmpty} from 'ramda';
-
+import sanitizeHTML from '../utils/sanitize-html';
 
 /**
  * @module DomElTemplate
@@ -282,9 +282,11 @@ export class DomElementTemplate {
   }
 
   removeThis() {
-    this.finalArr = undefined;
-    this.templateData = undefined;
-    this.template = undefined;
+    if (this!==undefined) {
+      this.finalArr = undefined;
+      this.templateData = undefined;
+      this.template = undefined;
+    }
   }
 
 
@@ -295,18 +297,18 @@ export class DomElementTemplate {
 
 
   renderDocFrag() {
-    const html = this.finalArr.join('');
+    const html = sanitizeHTML(this.finalArr.join(''));
     const isTableSubTag =   /^([^>]*?)(<){1}(\b)(thead|col|colgroup|tbody|td|tfoot|tr|th)(\b)([^\0]*)$/.test(html);
     const el = isTableSubTag ? html : document.createRange().createContextualFragment(html);
 
-    window.setTimeout(this.removeThis(), 2);
+    window.setTimeout(this.removeThis, 2);
     return el;
 
   }
 
   renderToString(){
     const html = this.finalArr.join('');
-    window.setTimeout(this.removeThis(), 2);
+    window.setTimeout(this.removeThis, 2);
     return html;
   }
 
