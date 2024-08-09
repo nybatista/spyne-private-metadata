@@ -142,7 +142,19 @@ export class ChannelFetchUtil {
   }
 
   static setServerOptions(opts) {
-    let options = pick(['header', 'body', 'mode', 'method'], opts);
+    let options = pick([
+      'method',
+      'headers',
+      'body',
+      'mode',
+      'credentials',
+      'cache',
+      'redirect',
+      'referrer',
+      'referrerPolicy',
+      'integrity',
+      'keepalive'
+    ], opts);
     let mergedOptions = mergeDeepRight(ChannelFetchUtil.baseOptions(), options);
     mergedOptions = ChannelFetchUtil.updateMethodWhenBodyExists(mergedOptions);
     mergedOptions = ChannelFetchUtil.stringifyBodyIfItExists(mergedOptions);
@@ -151,10 +163,18 @@ export class ChannelFetchUtil {
 
   static baseOptions() {
     return {
-      method: 'GET',
-      headers: {
+      method: 'GET', // Default method
+      headers: new Headers({
         "Accept": "application/json, text/plain, */*"
-      }
+      }),
+      mode: 'cors', // Default mode
+      credentials: 'same-origin', // Default credentials policy
+      cache: 'default', // Default cache policy
+      redirect: 'follow', // Default redirect policy
+      referrer: 'client', // Default referrer policy
+      referrerPolicy: 'no-referrer-when-downgrade', // Default referrer policy
+      integrity: '', // Default integrity
+      keepalive: false // Default keepalive
     };
   }
 }

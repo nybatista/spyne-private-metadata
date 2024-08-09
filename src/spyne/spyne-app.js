@@ -6,7 +6,7 @@ import {sanitizeHTMLConfigure} from './utils/sanitize-html';
 import sanitizeHTML from './utils/sanitize-html';
 //import { sanitizeHTML } from './spyne';
 const _channels = new ChannelsMap();
-const version = '0.19.5';
+const version = '0.19.7';
 
 class SpyneApplication {
   /**
@@ -44,7 +44,7 @@ class SpyneApplication {
   init(config = {}, testMode=false) {
     //this.channels = new ChannelsMap();
     /*!
-     * Spyne 0.19.5
+     * Spyne 0.19.7
      * https://spynejs.org
      *
      * @license Copyright 2017-2021, Frank Batista, Relevant Context, LLC. All rights reserved.
@@ -72,6 +72,9 @@ class SpyneApplication {
       scrollLockY: 0,
       debug: false,
       strict: false,
+      pluginMethods:{
+
+      },
       plugins:{
 
       },
@@ -107,7 +110,7 @@ class SpyneApplication {
     };
     if (config !== undefined) {
        config = SpyneAppProperties.initialize(defaultConfig, config, _channels);
-       console.log("SPYNE APP PROPS ",SpyneAppProperties);
+       //console.log("SPYNE APP PROPS ",SpyneAppProperties);
       //window.Spyne = this;
       //window.Spyne['config'] = deepMerge(defaultConfig, config)
     }

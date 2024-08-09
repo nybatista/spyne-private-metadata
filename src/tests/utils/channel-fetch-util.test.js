@@ -43,7 +43,9 @@ describe('ChannelFetchUtil Tests', () => {
     'url': 'https://jsonplaceholder.typicode.com/posts/1'
   };
 
-  const baseServerOptions = { method: 'GET', headers: {  "Accept": "application/json, text/plain, */*" } };
+  //const baseServerOptions = { method: 'GET', headers: {  "Accept": "application/json, text/plain, */*" } };
+
+  const baseServerOptions = ChannelFetchUtil.baseOptions();
 
   describe('stringify body method', () => {
     it('should convert body object to string', () => {

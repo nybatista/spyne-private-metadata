@@ -189,15 +189,17 @@ export class DomElementTemplate {
 
     const re = /({{#[\w.]+}}[\w\n\s\W]+?{{\/[\w.]+}})/gm;
     const reLines2 = /(({{(?!loopNum|loopIndex))(.*?)(}}))/gm;
+    const reStr = "(?<=>)(.*?)(({{)(.*)(}}))";
 
-
+    const reLines1 =  new RegExp(reStr, 'gm');
+/*
     let reLines1 = /(NOTSUPPORTED)/gm;
     try {
       const reStr = "(?<=>)(.*?)(({{)(.*)(}}))";
       reLines1 = new RegExp(reStr, 'gm');
     } catch(e){
       console.warn("SAFARI BROWSER BUG: CMS unavailable, since Safari does not support Lookbehind regex assertion.");
-    }
+    } */
 
 
     //const reLines1 = /(?<=>)(.*?)(({{)(.*)(}}))/gm;

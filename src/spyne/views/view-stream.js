@@ -1,4 +1,3 @@
-
 import { baseCoreMixins } from '../utils/mixins/base-core-mixins';
 import {SpyneAppProperties} from '../utils/spyne-app-properties';
 import { deepMerge } from '../utils/deep-merge';

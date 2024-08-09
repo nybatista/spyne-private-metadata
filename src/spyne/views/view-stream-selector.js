@@ -22,12 +22,12 @@ function isNodeElement(el){
   return nodeCheck(el);
 }
 
-function getElOrList(cxt, str, verboseBool=false) {
-  let list = getNodeListArray(cxt, str, verboseBool);
+function getElOrList(cxt, sel, verboseBool=false) {
+  let list = getNodeListArray(cxt, sel, verboseBool);
   return list.length === 1 ? head(list) : list;
 };
 
-function testSelectors(cxt, str, verboseBool) {
+function testSelectors(cxt, sel, verboseBool) {
   let el = document.querySelector(cxt);
 
   const elIsDomElement = compose(lte(0), defaultTo(-1),
@@ -38,11 +38,11 @@ function testSelectors(cxt, str, verboseBool) {
     return;
   }
 
-  if (str !== undefined) {
-    let query = el.querySelector(str);
+  if (sel !== undefined) {
+    let query = el.querySelector(sel);
     if (query === null) {
       if (isDevMode() === true && verboseBool===true) {
-        console.warn(`Spyne Warning: the selector, ${str} does not exist in this el, ${cxt}`);
+        console.warn(`Spyne Warning: the selector, ${sel} does not exist in this el, ${cxt}`);
       }
 
     }
@@ -50,8 +50,8 @@ function testSelectors(cxt, str, verboseBool) {
 
 }
 
-function getNodeListArray(cxt, str, verboseBool=false) {
-  let selector = str !== undefined ? `${cxt} ${str}` : cxt;
+function getNodeListArray(cxt, sel, verboseBool=false) {
+  let selector = sel !== undefined ? `${cxt} ${sel}` : cxt;
   let isParent = false;
 
 
@@ -61,9 +61,9 @@ function getNodeListArray(cxt, str, verboseBool=false) {
           arr = document.querySelectorAll(selector)
         } catch (e) { arr = [] }
         try {
-          isParent = document.querySelector(str) === document.querySelector(cxt);
+          isParent = document.querySelector(sel) === document.querySelector(cxt);
           if (isParent === true){
-            arr =  [document.querySelector(str)];
+            arr =  [document.querySelector(sel)];
           }
         } catch(e){
           //return [];
@@ -76,7 +76,7 @@ function getNodeListArray(cxt, str, verboseBool=false) {
 
   if (verboseBool===true) {
     const mainSel = isParent === true ? 'body' : cxt;
-    testSelectors(mainSel, str, verboseBool);
+    testSelectors(mainSel, sel, verboseBool);
   }
 
   return elArr;
@@ -85,8 +85,8 @@ function getNodeListArray(cxt, str, verboseBool=false) {
 
 }
 
-function setInlineCss(val, cxt, str) {
-  let arr = getNodeListArray(cxt, str);
+function setInlineCss(val, cxt, sel) {
+  let arr = getNodeListArray(cxt, sel);
   const addInlineCss = item => {
     item.style.cssText = val;
   };
@@ -105,12 +105,12 @@ function setInlineCss(val, cxt, str) {
  * @constructor
  */
 
-function ViewStreamSelector(cxt, str) {
+function ViewStreamSelector(cxt, sel) {
   cxt = typeof (cxt) === 'string' ? cxt : generateSpyneSelectorId(cxt);
-  testSelectors(cxt, str, false);
+  testSelectors(cxt, sel, false);
 
-  function selector(str) {
-    return ViewStreamSelector(cxt, str);
+  function selector(sel) {
+    return ViewStreamSelector(cxt, sel);
   }
 
 
@@ -120,7 +120,7 @@ function ViewStreamSelector(cxt, str) {
    * @param {Function} fn
    * @returns An array of elements
    */
-  selector.map = (fn)=> Array.from(getNodeListArray(cxt, str)).map(fn);
+  selector.map = (fn)=> Array.from(getNodeListArray(cxt, sel)).map(fn);
 
   /**
    * Convenience method to iterate through a NodeList
@@ -128,10 +128,10 @@ function ViewStreamSelector(cxt, str) {
    * @param {Function} fn
    * @returns An array of elements
    */
-  selector.forEach = (fn)=> Array.from(getNodeListArray(cxt, str)).map(fn);
+  selector.forEach = (fn)=> Array.from(getNodeListArray(cxt, sel)).map(fn);
 
 
-  selector.getNodeListArray = () => getNodeListArray(cxt, str);
+  selector.getNodeListArray = () => getNodeListArray(cxt, sel);
 
   /**
    *
@@ -143,7 +143,7 @@ function ViewStreamSelector(cxt, str) {
    *
    **/
   selector.addClass = (c) => {
-    let arr = getNodeListArray(cxt, str);
+    let arr = getNodeListArray(cxt, sel);
     const addClass = item => item.classList.add(c);
     arr.forEach(addClass);
     return this;
@@ -155,7 +155,7 @@ function ViewStreamSelector(cxt, str) {
    * @desc Removes the class to the Element or to the NodeList.
    */
   selector.removeClass = (c) => {
-    let arr = getNodeListArray(cxt, str);
+    let arr = getNodeListArray(cxt, sel);
     const removeClass = item => {
       item.classList.remove(c);
     };
@@ -169,7 +169,7 @@ function ViewStreamSelector(cxt, str) {
    * @desc Sets the class to equal exactly the class string.
    */
   selector.setClass = (c) => {
-    let arr = getNodeListArray(cxt, str);
+    let arr = getNodeListArray(cxt, sel);
      /**
     * NON IE CLEANER SOLUTION
     * const removeClass = item => item.classList = c;
@@ -180,7 +180,7 @@ function ViewStreamSelector(cxt, str) {
       let removeClassStrArr = compose(reject(isEmpty), split(' '))(item.className);
       let classStrArr = c.split(" ");
       const remover = s => item.classList.remove(s);
-      const adder = str=>item.classList.add(str);
+      const adder = sel=>item.classList.add(sel);
        removeClassStrArr.forEach(remover);
        classStrArr.forEach(adder);
     };
@@ -204,7 +204,7 @@ function ViewStreamSelector(cxt, str) {
    *
    */
   selector.toggleClass = (c, bool) => {
-    let arr = getNodeListArray(cxt, str);
+    let arr = getNodeListArray(cxt, sel);
     const toggleClass = item => {
       bool = bool !== undefined ? bool : !item.classList.contains(c);
       bool ?  item.classList.add(c) : item.classList.remove(c);
@@ -228,7 +228,7 @@ function ViewStreamSelector(cxt, str) {
     if (selector.el.length!==0) {
       selector.el.appendChild(htmlElement);
     } else{
-      console.warn(`Spyne Warning: The selector, ${str} does not appear to be valid!`);
+      console.warn(`Spyne Warning: The selector, ${sel} does not appear to be valid!`);
     }
 
     return selector.el;
@@ -241,7 +241,7 @@ function ViewStreamSelector(cxt, str) {
    */
   selector.addAnimClass = (c)=>{
     const delayAddClass = ()=>{
-      let arr = getNodeListArray(cxt, str);
+      let arr = getNodeListArray(cxt, sel);
       const addClass = item => {
         try {
           item.classList.add(c);
@@ -258,18 +258,18 @@ function ViewStreamSelector(cxt, str) {
   /**
    *
    * @param {String} c
-   * @param {String|HTMLElement} sel The selector for the element.
+   * @param {String|HTMLElement} elSelector The selector for the element.
    * @desc Sets the class active HTMLElement from a NodeList.
    */
-  selector.setActiveItem = (c, sel) => {
-    let arr = getNodeListArray(cxt, str);
-    let currentEl = typeof (sel) === 'string' ? getElOrList(cxt, sel) : sel;
+  selector.setActiveItem = (c, elSelector) => {
+    let arr = getNodeListArray(cxt, sel);
+    let currentEl = typeof (elSelector) === 'string' ? getElOrList(cxt, elSelector) : elSelector;
     const toggleBool = item => item.isEqualNode(currentEl) ? item.classList.add(c) : item.classList.remove(c);
     if (isNodeElement(currentEl)===true) {
       arr.forEach(toggleBool);
     } else if (isDevMode()===true){
-      //console.log("SEL IS ",sel,c);
-      console.warn(`Spyne Warning: The selector, ${sel}, does not appear to be a valid item in setActiveItem: ${c}`);
+      //console.log("SEL IS ",elSelector,c);
+      console.warn(`Spyne Warning: The selector, ${elSelector}, does not appear to be a valid item in setActiveItem: ${c}`);
     }
     return this;
   };
@@ -309,14 +309,14 @@ function ViewStreamSelector(cxt, str) {
    */
 
 
-  Object.defineProperty(selector, 'el', {get: () => getElOrList(cxt, str, true)});
-  Object.defineProperty(selector, 'els', {get: () => getNodeListArray(cxt, str)});
-  Object.defineProperty(selector, 'len', {get: () => getNodeListArray(cxt, str, false).length});
-  Object.defineProperty(selector, 'exists', {get: () => getNodeListArray(cxt, str, false).length>=1});
-  Object.defineProperty(selector, 'exist', {get: () => getNodeListArray(cxt, str, false).length>=1});
-  Object.defineProperty(selector, 'nodeList', {get: () => getNodeListArray(cxt, str)});
+  Object.defineProperty(selector, 'el', {get: () => getElOrList(cxt, sel, true)});
+  Object.defineProperty(selector, 'els', {get: () => getNodeListArray(cxt, sel)});
+  Object.defineProperty(selector, 'len', {get: () => getNodeListArray(cxt, sel, false).length});
+  Object.defineProperty(selector, 'exists', {get: () => getNodeListArray(cxt, sel, false).length>=1});
+  Object.defineProperty(selector, 'exist', {get: () => getNodeListArray(cxt, sel, false).length>=1});
+  Object.defineProperty(selector, 'nodeList', {get: () => getNodeListArray(cxt, sel)});
   Object.defineProperty(selector, 'arr', {get: () => {
-    let el = getElOrList(cxt, str, true);
+    let el = getElOrList(cxt, sel, true);
     if (el === undefined) {
       return [];
     } else if (el.length===undefined){
@@ -329,8 +329,8 @@ function ViewStreamSelector(cxt, str) {
 
 
 
-  Object.defineProperty(selector, 'inline', {set: (val) => setInlineCss(val, cxt, str)});
-  Object.defineProperty(selector, 'inlineCss', {set: (val) => setInlineCss(val, cxt, str)});
+  Object.defineProperty(selector, 'inline', {set: (val) => setInlineCss(val, cxt, sel)});
+  Object.defineProperty(selector, 'inlineCss', {set: (val) => setInlineCss(val, cxt, sel)});
 
   return selector;
 
