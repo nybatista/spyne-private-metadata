@@ -4,6 +4,7 @@ import {SpyneAppProperties} from '../utils/spyne-app-properties';
 import { fromEvent } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {clone, omit} from 'ramda';
+const isDevMode = SpyneAppProperties.debug === true;
 
 export class ViewStreamBroadcaster {
   /**
@@ -40,6 +41,10 @@ export class ViewStreamBroadcaster {
   // BROADCAST BUTTON EVENTS
   //  ==================================================================
   broadcast(args) {
+    if (args.length <= 0 && isDevMode === true){
+      console.warn(`Spyne Warning: The nested array in ${this.props.name}.broadcastEvents appears to be empty --> vsid:${this.props.vsid}!`);
+      return;
+    }
     // payloads to send, based on either the array or the elements dataMap
     let channelPayloads = {
       'UI': this.sendUIPayload,
@@ -95,7 +100,6 @@ export class ViewStreamBroadcaster {
       // run payload
       channelPayload(observable, data);
     };
-    let isDevMode = SpyneAppProperties.debug === true;
     let queryIsNil = query === undefined || query.length <= 0;
     if (queryIsNil === true && isDevMode === true) {
       console.warn(`Spyne Warning: The item ${selector}, does not appear to exist in ${this.props.name} --> vsid:${this.props.vsid}!`);

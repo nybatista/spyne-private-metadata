@@ -30,24 +30,23 @@ function getElOrList(cxt, sel, verboseBool=false) {
 function testSelectors(cxt, sel, verboseBool) {
   let el = document.querySelector(cxt);
 
-  const elIsDomElement = compose(lte(0), defaultTo(-1),
-      prop('nodeType'));
+  const elIsDomElement = compose(lte(0), defaultTo(-1), prop('nodeType'));
 
   if (el !== null && elIsDomElement(el) === false) {
     console.warn(`Spyne Warning: the el object is not a valid single element, ${el}`);
     return;
   }
 
-  if (sel !== undefined) {
-    let query = el.querySelector(sel);
-    if (query === null) {
-      if (isDevMode() === true && verboseBool===true) {
+  if (sel !== undefined && String(sel).trim().length>0) {
+    let query;
+    if (verboseBool === true && isDevMode()===true){
+      try {
+        query = el.querySelector(sel);
+      } catch(e) {
         console.warn(`Spyne Warning: the selector, ${sel} does not exist in this el, ${cxt}`);
       }
-
     }
   }
-
 }
 
 function getNodeListArray(cxt, sel, verboseBool=false) {
@@ -258,18 +257,18 @@ function ViewStreamSelector(cxt, sel) {
   /**
    *
    * @param {String} c
-   * @param {String|HTMLElement} elSelector The selector for the element.
+   * @param {String|HTMLElement} elSel The selector for the element.
    * @desc Sets the class active HTMLElement from a NodeList.
    */
-  selector.setActiveItem = (c, elSelector) => {
+  selector.setActiveItem = (c, elSel) => {
     let arr = getNodeListArray(cxt, sel);
-    let currentEl = typeof (elSelector) === 'string' ? getElOrList(cxt, elSelector) : elSelector;
+    let currentEl = typeof (elSel) === 'string' ? getElOrList(cxt, elSel) : elSel;
     const toggleBool = item => item.isEqualNode(currentEl) ? item.classList.add(c) : item.classList.remove(c);
     if (isNodeElement(currentEl)===true) {
       arr.forEach(toggleBool);
     } else if (isDevMode()===true){
-      //console.log("SEL IS ",elSelector,c);
-      console.warn(`Spyne Warning: The selector, ${elSelector}, does not appear to be a valid item in setActiveItem: ${c}`);
+      //console.log("SEL IS ",elSel,c);
+      console.warn(`Spyne Warning: The selector, ${elSel}, does not appear to be a valid item in setActiveItem: ${c}`);
     }
     return this;
   };

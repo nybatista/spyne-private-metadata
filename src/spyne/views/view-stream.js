@@ -1101,7 +1101,7 @@ export class ViewStream {
    *
    * */
 
-  addChannel(str, skipFirst=false, sendDownStream = false, bool = false) {
+  addChannel(channelName, skipFirst=false, sendDownStream = false, bool = false) {
 
     const directionArr = sendDownStream === true ? this.$dirs.CI : this.$dirs.I;
     const mapDirection = p => {
@@ -1130,9 +1130,9 @@ export class ViewStream {
       pipeArr.unshift(skip(1));
     }
 
-    let channel$ = this.getChannel(str).pipe(...pipeArr);
+    let channel$ = this.getChannel(channelName).pipe(...pipeArr);
     this.updateSourceSubscription(channel$, false);
-    this.props.addedChannels.push(str);
+    this.props.addedChannels.push(channelName);
   }
 
   checkIfChannelExists(channelName) {
