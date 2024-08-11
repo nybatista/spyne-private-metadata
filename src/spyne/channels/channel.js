@@ -374,7 +374,7 @@ export class Channel {
    * <p>Knowledge of rxjs is not required to subscribe to and parse Channel data.</p>
    * <p>But accessing the rxjs Subject gives developers the ability to use all of the available rxjs mapping and observable tools.</p>
    *
-   * @param {String} CHANNEL_NAME The registered name of the requested channel.
+   * @param {String} channelName The registered name of the requested channel.
    * @returns
    * The source rxjs Subject of the requested channel.
    * @example
@@ -384,7 +384,7 @@ export class Channel {
    *
    *
    */
-  getChannel(CHANNEL_NAME, payloadFilter) {
+  getChannel(channelName, payloadFilter) {
     let isValidChannel = c => registeredStreamNames().includes(c);
     let error = c => console.warn(
         `channel name ${c} is not within ${registeredStreamNames}`);
@@ -397,7 +397,7 @@ export class Channel {
       return obs$;
     };
     let fn = ifElse(isValidChannel, startSubscribe, error);
-    return fn(CHANNEL_NAME);
+    return fn(channelName);
   }
 
 
