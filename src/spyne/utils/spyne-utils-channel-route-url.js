@@ -156,6 +156,32 @@ export class SpyneUtilsChannelRouteUrl {
     return map(mapUrlProps, urlsArr)
   }
 
+  static checkForRouteValWithMultipleVals(urlsArr) {
+    // Define the internal method to extract the string before the pipe
+    const getStringBeforePipe = (input) => {
+      const match = input.match(/^[^|]*/)
+      return match ? (match[0] === '^$' ? '' : match[0]) : input
+    }
+
+    const mapUrlArrObj = (obj) => {
+      const pipeReducer = (acc, key) => {
+        acc[key] = getStringBeforePipe(obj[key])
+        return acc
+      }
+
+      if (typeof obj === 'object') {
+        obj = Object.keys(obj).reduce(pipeReducer, {})
+      }
+      return obj
+    }
+
+    if (Array.isArray(urlsArr) === true) {
+      return urlsArr.map(mapUrlArrObj)
+    }
+
+    return urlsArr
+  }
+
   static convertParamsToRoute(data, r = SpyneAppProperties.config.channels.ROUTE, t, locStr) {
     const urlType = t !== undefined ? t : r.type
     const isHash = r.isHash
@@ -165,7 +191,8 @@ export class SpyneUtilsChannelRouteUrl {
     let urlArr = this.createRouteArrayFromParams(data, route, urlType, paramsFromCurrentLocation)
 
     urlArr = SpyneUtilsChannelRouteUrl.checkPayloadForRegexOverrides(urlArr, data)
-    // console.log("PARAMS TO ROUTE ",{data,r,urlArr,locationStr, paramsFromCurrentLocation});
+    urlArr = SpyneUtilsChannelRouteUrl.checkForRouteValWithMultipleVals(urlArr)
+    //console.log('PARAMS TO ROUTE ', { data, r, urlArr, locationStr, paramsFromCurrentLocation })
 
     // THIS CREATES A QUERY PATH STR
     if (urlType === 'query') {

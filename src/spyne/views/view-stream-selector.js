@@ -24,7 +24,7 @@ function isNodeElement(el) {
 function getElOrList(cxt, sel, verboseBool = false) {
   const list = getNodeListArray(cxt, sel, verboseBool)
   return list.length === 1 ? head(list) : list
-};
+}
 
 function testSelectors(cxt, sel, verboseBool) {
   const el = document.querySelector(cxt)
@@ -37,7 +37,8 @@ function testSelectors(cxt, sel, verboseBool) {
   }
 
   if (sel !== undefined && String(sel).trim().length > 0) {
-    if (verboseBool === true && isDevMode() === true && el.querySelector(sel) === undefined) {
+    const isEmptyQuery = el.querySelectorAll(sel)?.length === 0
+    if (verboseBool === true && isDevMode() === true && isEmptyQuery === true) {
       console.warn(`Spyne Warning: the selector, ${sel} does not exist in this el, ${cxt}`)
     }
   }
