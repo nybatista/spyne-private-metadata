@@ -1,12 +1,10 @@
-import {ChannelsMap} from './channels/channels-map';
-import {ViewStream} from './views/view-stream';
-import {SpyneAppProperties} from './utils/spyne-app-properties';
-import {deepMerge} from './utils/deep-merge';
-import {sanitizeHTMLConfigure} from './utils/sanitize-html';
-import sanitizeHTML from './utils/sanitize-html';
-//import { sanitizeHTML } from './spyne';
-const _channels = new ChannelsMap();
-const version = '0.19.7';
+import { ChannelsMap } from './channels/channels-map'
+import { ViewStream } from './views/view-stream'
+import { SpyneAppProperties } from './utils/spyne-app-properties'
+import { sanitizeHTMLConfigure } from './utils/sanitize-html'
+
+const _channels = new ChannelsMap()
+const version = '0.19.7'
 
 class SpyneApplication {
   /**
@@ -33,16 +31,15 @@ class SpyneApplication {
   constructor() {
     this.version = version
 
-    //console.log('spyne app created')
-
-
-  }
-  get channels(){
-    return _channels;
+    // console.log('spyne app created')
   }
 
-  init(config = {}, testMode=false) {
-    //this.channels = new ChannelsMap();
+  get channels() {
+    return _channels
+  }
+
+  init(config = {}, testMode = false) {
+    // this.channels = new ChannelsMap();
     /*!
      * Spyne 0.19.7
      * https://spynejs.org
@@ -131,7 +128,6 @@ class SpyneApplication {
     sanitizeHTMLConfigure(SpyneAppProperties.config);
 
 
-    //console.log("spyneappprops config ", sanitizeHTML('<div>Your HTML content</div>'));
 
   }
 

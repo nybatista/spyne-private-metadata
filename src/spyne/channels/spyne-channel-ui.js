@@ -1,7 +1,7 @@
-import { Channel } from './channel';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import {equals, path, compose,prop, filter,replace, lensProp, over, omit, test, keys, either, toUpper} from 'ramda';
+import { Channel } from './channel'
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
+import { equals, path, compose, prop, filter, replace, lensProp, over, omit, test, keys, either, toUpper } from 'ramda'
 
 export class SpyneChannelUI extends Channel {
   /**
@@ -21,10 +21,10 @@ export class SpyneChannelUI extends Channel {
    */
 
   constructor(name = 'CHANNEL_UI', props = {}) {
-    props.sendCachedPayload = false;
-    super(name, props);
-    this.keyEventsLoaded = false;
-    this.keyCodeArr = [];
+    props.sendCachedPayload = false
+    super(name, props)
+    this.keyEventsLoaded = false
+    this.keyCodeArr = []
   }
 
   addRegisteredActions() {
@@ -242,85 +242,83 @@ export class SpyneChannelUI extends Channel {
   }
 
   loadKeyStream() {
-    let keyUps = Observable.fromEvent(document, 'keyup');
-    let filterKeys = e => this.keyCodeArr.indexOf(e.keyCode) >= 0;
+    const keyUps = Observable.fromEvent(document, 'keyup')
+    const filterKeys = e => this.keyCodeArr.indexOf(e.keyCode) >= 0
     this.keyPresses$ = keyUps.groupBy(e => e.keyCode)
       .mergeAll()
       .filter(filterKeys)
       .repeat()
-      .subscribe(this.onKeyPressed.bind(this));
+      .subscribe(this.onKeyPressed.bind(this))
   }
 
   addKeyEvent(num) {
     if (this.keyEventsLoaded === false) {
-      this.loadKeyStream();
+      this.loadKeyStream()
     }
-    this.keyEventsLoaded = true;
-    this.registerKey(num);
+    this.keyEventsLoaded = true
+    this.registerKey(num)
   }
 
   registerKey(c) {
-    this.keyCodeArr.push(c);
+    this.keyCodeArr.push(c)
   }
 
   onKeyPressed(evt) {
-    //console.log('key is ', evt);
-  }
-  static removeSSID(pl){
-    const routeLens = lensProp(['payload']);
-    const omitSSID = over(routeLens, omit(['vsid']));
-    return omitSSID(pl);
+    // console.log('key is ', evt);
   }
 
+  static removeSSID(pl) {
+    const routeLens = lensProp(['payload'])
+    const omitSSID = over(routeLens, omit(['vsid']))
+    return omitSSID(pl)
+  }
 
   onIncomingObservable(obj) {
-    let eqsName = equals(obj.name, this.props.name);
-    obj.data = SpyneChannelUI.removeSSID(obj.data);
-    let {payload, srcElement} = obj.data;
-    let dataObj = obsVal => ({ payload, srcElement, event: obsVal });
-    let onSuccess = (obj) => obj.observable.pipe(map(dataObj))
-      .subscribe(this.onUIEvent.bind(this));
-    let onError = () => {};
-    return eqsName === true ? onSuccess(obj) : onError();
+    const eqsName = equals(obj.name, this.props.name)
+    obj.data = SpyneChannelUI.removeSSID(obj.data)
+    const { payload, srcElement } = obj.data
+    const dataObj = obsVal => ({ payload, srcElement, event: obsVal })
+    const onSuccess = (obj) => obj.observable.pipe(map(dataObj))
+      .subscribe(this.onUIEvent.bind(this))
+    const onError = () => {}
+    return eqsName === true ? onSuccess(obj) : onError()
   }
 
   getActionState(val) {
-    let typeVal = path(['event', 'type']);
-    let typeOverRideVal = path(['event', 'typeOverRide']);
-    let eventType = compose(toUpper, either(typeOverRideVal, typeVal));
-    let type = eventType(val);
-    let mainAction = 'CHANNEL_UI';
-    return type !== undefined ? `${mainAction}_${type}_EVENT` : mainAction;
+    const typeVal = path(['event', 'type'])
+    const typeOverRideVal = path(['event', 'typeOverRide'])
+    const eventType = compose(toUpper, either(typeOverRideVal, typeVal))
+    const type = eventType(val)
+    const mainAction = 'CHANNEL_UI'
+    return type !== undefined ? `${mainAction}_${type}_EVENT` : mainAction
   }
 
-  static checkForEventMethods(obs){
-    const re = /^(event)([A-Z].*)([A-Z].*)$/gm;
-    const getMethods = compose(filter(test(re)), keys, prop('payload'));
-    const methodsArr = getMethods(obs);
-    if (methodsArr.length>=1) {
-      const evt = prop('event', obs);
+  static checkForEventMethods(obs) {
+    const re = /^(event)([A-Z].*)([A-Z].*)$/gm
+    const getMethods = compose(filter(test(re)), keys, prop('payload'))
+    const methodsArr = getMethods(obs)
+    if (methodsArr.length >= 1) {
+      const evt = prop('event', obs)
       if (evt !== undefined) {
-        const methodUpdate = (match,p1,p2,p3,p4)=>String(p2).toLowerCase()+p3+p4;
-        const methodStrReplace = replace(/^(event)([A-Z])(.*)([A-Z].*)$/gm, methodUpdate);
-        const runMethod = (methodStr)=>{
-          const m = methodStrReplace(methodStr);
-          if (evt[m]!==undefined && typeof(evt[m])==='function') {evt[m]();}
-        };
+        const methodUpdate = (match, p1, p2, p3, p4) => String(p2).toLowerCase() + p3 + p4
+        const methodStrReplace = replace(/^(event)([A-Z])(.*)([A-Z].*)$/gm, methodUpdate)
+        const runMethod = (methodStr) => {
+          const m = methodStrReplace(methodStr)
+          if (evt[m] !== undefined && typeof (evt[m]) === 'function') { evt[m]() }
+        }
         methodsArr.forEach(runMethod)
       }
     }
 
-    return obs;
+    return obs
   }
 
-
-
   onUIEvent(obs) {
-    SpyneChannelUI.checkForEventMethods(obs);
-    obs['action'] = this.getActionState(obs);
-    const action = obs.action;// this.getActionState(obs);
-    const { payload, srcElement } = obs;
-    const event = obs.event;
-    this.sendChannelPayload(action, payload, srcElement, event);
+    SpyneChannelUI.checkForEventMethods(obs)
+    obs.action = this.getActionState(obs)
+    const action = obs.action// this.getActionState(obs);
+    const { payload, srcElement } = obs
+    const event = obs.event
+    this.sendChannelPayload(action, payload, srcElement, event)
   }
 }

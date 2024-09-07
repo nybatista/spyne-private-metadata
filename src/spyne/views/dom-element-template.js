@@ -1,5 +1,5 @@
-import {includes, __, ifElse, path, prop, reject, is, isNil, isEmpty} from 'ramda';
-import sanitizeHTML from '../utils/sanitize-html';
+import { includes, __, ifElse, path, prop, reject, is, isNil, isEmpty } from 'ramda'
+import sanitizeHTML from '../utils/sanitize-html'
 
 /**
  * @module DomElTemplate
@@ -134,293 +134,257 @@ import sanitizeHTML from '../utils/sanitize-html';
  */
 
 export class DomElementTemplate {
-  constructor(template, data={}) {
-    this.template = this.formatTemplate(template);
-    this.isProxyData = data.__cms__isProxy === true;
+  constructor(template, data = {}) {
+    this.template = this.formatTemplate(template)
+    this.isProxyData = data.__cms__isProxy === true
 
-    if (this.isProxyData === true){
-      //data['cmsId'] = data.__cms__dataId;
-      this.template = DomElementTemplate.formatTemplateForProxyData(this.template);
+    if (this.isProxyData === true) {
+      // data['cmsId'] = data.__cms__dataId;
+      this.template = DomElementTemplate.formatTemplateForProxyData(this.template)
     }
 
-    const checkForArrayData = ()=>{
+    const checkForArrayData = () => {
       if (is(Array, data) === true) {
-        data = {spyneData:data};
-        this.template = this.template.replace("{{/}}", "{{/spyneData}}");
-        this.template = this.template.replace("{{#}}", "{{#spyneData}}");
+        data = { spyneData:data }
+        this.template = this.template.replace('{{/}}', '{{/spyneData}}')
+        this.template = this.template.replace('{{#}}', '{{#spyneData}}')
       }
-    };
+    }
 
+    checkForArrayData()
 
-    checkForArrayData();
+    this.templateData = data
 
-    this.templateData = data;
+    const strArr = DomElementTemplate.getStringArray(this.template)
 
-    let strArr = DomElementTemplate.getStringArray(this.template);
+    let strMatches = this.template.match(DomElementTemplate.findTmplLoopsRE())
+    strMatches = strMatches === null ? [] : strMatches
 
-    let strMatches = this.template.match(DomElementTemplate.findTmplLoopsRE());
-    strMatches = strMatches === null ? [] : strMatches;
+    const parseTmplLoopsRE = DomElementTemplate.parseTmplLoopsRE()
 
-    const parseTmplLoopsRE = DomElementTemplate.parseTmplLoopsRE();
-
-    const parseTmplLoopFn =  this.parseTheTmplLoop.bind(this);
+    const parseTmplLoopFn =  this.parseTheTmplLoop.bind(this)
 
     const mapTmplLoop = (str, data) => {
-      return str.replace(parseTmplLoopsRE, parseTmplLoopFn);
+      return str.replace(parseTmplLoopsRE, parseTmplLoopFn)
     }
 
-    const findTmplLoopsPred = includes(__, strMatches);
+    const findTmplLoopsPred = includes(__, strMatches)
     const checkForMatches = ifElse(
-        findTmplLoopsPred,
-        mapTmplLoop,
-        this.addParams.bind(this));
+      findTmplLoopsPred,
+      mapTmplLoop,
+      this.addParams.bind(this))
 
-    this.finalArr = strArr.map(checkForMatches);
-
+    this.finalArr = strArr.map(checkForMatches)
   }
 
-  static isPrimitiveTag(str){
-    return  /({{\.\*?}})/.test(str);;
+  static isPrimitiveTag(str) {
+    return /({{\.\*?}})/.test(str)
   }
-
 
   // ADD PARAMS TO TRACK PROXY DATA
-  static formatTemplateForProxyData (tmpl){
+  static formatTemplateForProxyData(tmpl) {
+    const reLines2 = /(({{(?!loopNum|loopIndex))(.*?)(}}))/gm
+    const reStr = '(?<=>)(.*?)(({{)(.*)(}}))'
 
-    const re = /({{#[\w.]+}}[\w\n\s\W]+?{{\/[\w.]+}})/gm;
-    const reLines2 = /(({{(?!loopNum|loopIndex))(.*?)(}}))/gm;
-    const reStr = "(?<=>)(.*?)(({{)(.*)(}}))";
+    const reLines1 =  new RegExp(reStr, 'gm')
 
-    const reLines1 =  new RegExp(reStr, 'gm');
-/*
-    let reLines1 = /(NOTSUPPORTED)/gm;
-    try {
-      const reStr = "(?<=>)(.*?)(({{)(.*)(}}))";
-      reLines1 = new RegExp(reStr, 'gm');
-    } catch(e){
-      console.warn("SAFARI BROWSER BUG: CMS unavailable, since Safari does not support Lookbehind regex assertion.");
-    } */
-
-
-    //const reLines1 = /(?<=>)(.*?)(({{)(.*)(}}))/gm;
-
-    // CREATE VALUES FOR __cms__dataId && original key
     const formatCmsParam = (str) => {
-      const isArrPrimitive = DomElementTemplate.isPrimitiveTag(str);
+      const isArrPrimitive = DomElementTemplate.isPrimitiveTag(str)
 
-      const getKeyAndDataId = (s)=>{
-        const re = /({{)([\w_\-\.]+(\.))*?(\w+)(}})/gm;
-        let dataId = '__cms__dataId';
-        const key = isArrPrimitive ? '{{loopIndex}}' : String(s).replace(re, "$4")
-        if (/(\w\.)/.test(s)){
-          dataId = String(s).replace(re, "$2")+dataId;
+      const getKeyAndDataId = (s) => {
+        const re = /({{)([\w_]+(\.))*?(\w+)(}})/gm
+        let dataId = '__cms__dataId'
+        const key = isArrPrimitive ? '{{loopIndex}}' : String(s).replace(re, '$4')
+        if (/(\w\.)/.test(s)) {
+          dataId = String(s).replace(re, '$2') + dataId
         }
-        return {key, dataId}
+        return { key, dataId }
       }
 
-      const {key, dataId} = getKeyAndDataId(str);
+      const { key, dataId } = getKeyAndDataId(str)
 
       let prefix = `<spyne-cms-item data-cms-id="{{${dataId}}}" data-cms-key="${key}"`
 
       // IF AN ARRAY PRIMITIVE CHECK FOR ORIGINAL ARRAY POSITION
       if (isArrPrimitive) {
-        prefix += ` data-cms-orig-key="{{origKey}}"`;
+        prefix += ' data-cms-orig-key="{{origKey}}"'
       }
 
       // CREATE PROXY TAG
-      const suffix = "</spyne-cms-item>";
-      const param =  isArrPrimitive ? "{{spyneLoopKey}}" : str;
-      return `${prefix}><spyne-cms-item-hitbox></spyne-cms-item-hitbox><spyne-cms-item-text>${param}</spyne-cms-item-text>${suffix}`;
-
+      const suffix = '</spyne-cms-item>'
+      const param =  isArrPrimitive ? '{{spyneLoopKey}}' : str
+      return `${prefix}><spyne-cms-item-hitbox></spyne-cms-item-hitbox><spyne-cms-item-text>${param}</spyne-cms-item-text>${suffix}`
     }
 
     const reSwapTags = (str, m1, m2, m3) => {
-      return formatCmsParam(str);
+      return formatCmsParam(str)
     }
 
     const reMethod = (str, m1, m2, m3, m4) => {
-      const m2Updated = String(m2).replace(reLines2, reSwapTags);
+      const m2Updated = String(m2).replace(reLines2, reSwapTags)
       return `${m1}${m2Updated}`
     }
 
-
-    return String(tmpl).replace(reLines1, reMethod);
-
+    return String(tmpl).replace(reLines1, reMethod)
   }
 
-
   // FIND CORRECT NESTED DATA
-  static getNestedDataReducer(data={}, param=""){
-    const dataReducer = (nestedData, str) =>{
-      if (nestedData[str]){
-        return nestedData[str];
+  static getNestedDataReducer(data = {}, param = '') {
+    const dataReducer = (nestedData, str) => {
+      if (nestedData[str]) {
+        return nestedData[str]
       }
-      return typeof nestedData === 'string' ? nestedData : '';
+      return typeof nestedData === 'string' ? nestedData : ''
     }
 
-    return  /(\.)/gm.test(String(param)) ?  String(param).split('.').reduce(dataReducer,data) : data[param] ?? '';
+    return /(\.)/gm.test(String(param)) ? String(param).split('.').reduce(dataReducer, data) : data[param] ?? ''
   }
 
   static getStringArray(template) {
-    let strArr = template.split(DomElementTemplate.findTmplLoopsRE());
-    const emptyRE = /^([\\n\s\W]+)$/;
-    const filterOutEmptyStrings = s => s.match(emptyRE);
-    const finalStr =  reject(filterOutEmptyStrings, strArr);
+    const strArr = template.split(DomElementTemplate.findTmplLoopsRE())
+    const emptyRE = /^([\\n\s\W]+)$/
+    const filterOutEmptyStrings = s => s.match(emptyRE)
+    const finalStr =  reject(filterOutEmptyStrings, strArr)
 
-    return finalStr;
-
+    return finalStr
   }
 
   static findTmplLoopsRE() {
-    return /({{#[\w.]+}}[\w\n\s\W]+?{{\/[\w.]+}})/gm;
+    return /({{#[\w.]+}}[\w\n\s\W]+?{{\/[\w.]+}})/gm
   }
 
   static parseTmplLoopsRE() {
-    return /({{#([\w.]+)}})([\w\n\s\W]+?)({{\/\2}})/gm;
+    return /({{#([\w.]+)}})([\w\n\s\W]+?)({{\/\2}})/gm
   }
 
   static swapParamsForTagsRE() {
-    return /({{)(.*?)(}})/gm;
+    return /({{)(.*?)(}})/gm
   }
 
   removeThis() {
-    if (this!==undefined) {
-      this.finalArr = undefined;
-      this.templateData = undefined;
-      this.template = undefined;
+    if (this !== undefined) {
+      this.finalArr = undefined
+      this.templateData = undefined
+      this.template = undefined
     }
   }
-
 
   /**
    *
    * @desc Returns a document fragment generated from the template and any added data.
    */
 
-
   renderDocFrag() {
-    const html = sanitizeHTML(this.finalArr.join(''));
-    const isTableSubTag =   /^([^>]*?)(<){1}(\b)(thead|col|colgroup|tbody|td|tfoot|tr|th)(\b)([^\0]*)$/.test(html);
-    const el = isTableSubTag ? html : document.createRange().createContextualFragment(html);
+    const html = sanitizeHTML(this.finalArr.join(''))
+    const isTableSubTag =   /^([^>]*?)(<){1}(\b)(thead|col|colgroup|tbody|td|tfoot|tr|th)(\b)([^\0]*)$/.test(html)
+    const el = isTableSubTag ? html : document.createRange().createContextualFragment(html)
 
-    window.setTimeout(this.removeThis, 2);
-    return el;
-
+    window.setTimeout(this.removeThis, 2)
+    return el
   }
 
-  renderToString(){
-    const html = this.finalArr.join('');
-    window.setTimeout(this.removeThis, 2);
-    return html;
+  renderToString() {
+    const html = this.finalArr.join('')
+    window.setTimeout(this.removeThis, 2)
+    return html
   }
 
   getTemplateString() {
-    return this.finalArr.join('');
+    return this.finalArr.join('')
   }
 
   formatTemplate(template) {
-    return ['SCRIPT', 'TEMPLATE'].includes(prop('nodeName', template)) === true ? template.innerHTML : template;
+    return ['SCRIPT', 'TEMPLATE'].includes(prop('nodeName', template)) === true ? template.innerHTML : template
   }
 
-  getDataValFromPathStr(pathStr, dataFile){
-    const pathArr = String(pathStr).split('.');
-    const pathData = path(pathArr, dataFile);
-    return pathData || '';
+  getDataValFromPathStr(pathStr, dataFile) {
+    const pathArr = String(pathStr).split('.')
+    const pathData = path(pathArr, dataFile)
+    return pathData || ''
   }
 
   addParams(str) {
-    const re = /(\.)/gm;
     const replaceTags = (str, p1, p2, p3) => {
-      return DomElementTemplate.getNestedDataReducer(this.templateData, p2);
-    };
-    return str.replace(DomElementTemplate.swapParamsForTagsRE(), replaceTags);
-
+      return DomElementTemplate.getNestedDataReducer(this.templateData, p2)
+    }
+    return str.replace(DomElementTemplate.swapParamsForTagsRE(), replaceTags)
   }
 
-
-
-
   parseTheTmplLoop(str, p1, p2, p3) {
-    const dotConverter = str=>`${str.replace(/(\.)/g, "][")}`
-    const reDot = /(\.)/gm;
-    const subStr = p3;
+    // const dotConverter = str => `${str.replace(/(\.)/g, '][')}`
+    const reDot = /(\.)/gm
+    const subStr = p3
 
-    const dataReducer = (acc, str) =>{
-      acc = acc[str];
-      return acc;
-    }
+    /*     const dataReducer = (acc, str) => {
+      acc = acc[str]
+      return acc
+    } */
 
+    let elData = DomElementTemplate.getNestedDataReducer(this.templateData, p2)
 
-    let elData = DomElementTemplate.getNestedDataReducer(this.templateData, p2);
-
-    const arrayStringToObjAdapter = (d,str, i)=>{
-
+    const arrayStringToObjAdapter = (d, str, i) => {
       // IF {{.}} RUN parseString
-      if (DomElementTemplate.isPrimitiveTag(str)){
-        return parseString(d, str, i);
+      if (DomElementTemplate.isPrimitiveTag(str)) {
+        return parseString(d, str, i)
       }
 
       // CREATE DATA OBJ -- CHECK TO ADD PROXY VALUES
-      const createDataObj = ()=>{
-        const spyneLoopKey = d;
-        const loopIndex = i;
-        const loopNum = i+1;
+      const createDataObj = () => {
+        const spyneLoopKey = d
+        const loopIndex = i
+        const loopNum = i + 1
 
         if (this.isProxyData) {
-          const __cms__dataId = elData.__cms__dataId;
+          const __cms__dataId = elData.__cms__dataId
           const keyIdStr = `__cms__keyFor_${d}`
-          const origKey = elData[keyIdStr];
-          return {spyneLoopKey, __cms__dataId, origKey, loopIndex, loopNum, d}
-
+          const origKey = elData[keyIdStr]
+          return { spyneLoopKey, __cms__dataId, origKey, loopIndex, loopNum, d }
         }
-        return {spyneLoopKey, loopIndex, loopNum};
+        return { spyneLoopKey, loopIndex, loopNum }
       }
 
-      return parseObject(createDataObj(), str, i);
+      return parseObject(createDataObj(), str, i)
     }
 
     const parseString = (item, str, index, origIndex) => {
-      return str.replace(DomElementTemplate.swapParamsForTagsRE(), item);
-    };
-
+      return str.replace(DomElementTemplate.swapParamsForTagsRE(), item)
+    }
 
     // PARSING ARRAYS AND OBJECTS
     const parseObject = (obj, str, i) => {
       /// LOOP NUMBER VALUES AUTO ADDED
 
-      //const loopIndex = i;
-      //const loopNum = i+1;
+      // const loopIndex = i;
+      // const loopNum = i+1;
 
       const loopObj = (str, p1, p2) => {
         // DOT SYNTAX CHECK
         const hash = {
           loopIndex: i,
-          loopNum: i+1
+          loopNum: i + 1
         }
 
         // IF {{.}}
-        if (reDot.test(p2) === false && obj[p2] !==undefined) {
+        if (reDot.test(p2) === false && obj[p2] !== undefined) {
           return hash[p2] !== undefined ? hash[p2] : obj[p2]
         }
 
-        const dataReducedVal  = this.getDataValFromPathStr(p2, obj);
+        const dataReducedVal  = this.getDataValFromPathStr(p2, obj)
         return hash[p2] !== undefined ? hash[p2] : dataReducedVal
-      };
-      return str.replace(DomElementTemplate.swapParamsForTagsRE(), loopObj);
-    };
+      }
+      return str.replace(DomElementTemplate.swapParamsForTagsRE(), loopObj)
+    }
 
-    const mapStringData = (d, i) => typeof(d) === 'string' ? arrayStringToObjAdapter(d, subStr,  i) : parseObject(d, subStr, i);
+    const mapStringData = (d, i) => typeof (d) === 'string' ? arrayStringToObjAdapter(d, subStr, i) : parseObject(d, subStr, i)
 
     if (isNil(elData) === true || isEmpty(elData)) {
-      return '';
+      return ''
     }
 
-    if (elData.length===undefined) {
-      elData = [elData];
+    if (elData.length === undefined) {
+      elData = [elData]
     }
 
-    return elData.map(mapStringData).join('');
-
-
+    return elData.map(mapStringData).join('')
   }
 }
