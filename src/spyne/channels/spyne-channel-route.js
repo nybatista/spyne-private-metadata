@@ -508,10 +508,10 @@ export class SpyneChannelRoute extends Channel {
   }
 
   setWindowLocation(channelPayload) {
-    let { isHash, routeValue } = channelPayload
+    let { isHash, routeValue, routeType } = channelPayload
     routeValue = this.checkEmptyRouteStr(routeValue, isHash)
     const { routeCount } = channelPayload
-    if (isHash === true) {
+    if (isHash === true || routeType === 'query') {
       const pathName = SpyneChannelRoute.removeLastSlash(window.location.pathname)
       routeValue = pathName + routeValue
       window.history.pushState({ routeCount }, '', routeValue)

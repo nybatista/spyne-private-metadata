@@ -8,6 +8,7 @@ let _channels
 let _channelsMap
 let _initialized
 let _debug = true
+let _IMG_PATH
 const _doNotTrackChannelsArr = []
 const _proxiesMap = new Map()
 
@@ -54,14 +55,25 @@ class SpyneAppPropertiesClass {
     if (_config.channels && _config.channels.ROUTE) {
       _config = SpyneUtilsChannelRoute.conformRouteObject(_config)
     }
-
+    _IMG_PATH = _config?.IMG_PATH
     _debug = _config.debug !== undefined ? _config.debug : _debug
     this.getChannelActions = _channels.getChannelActions.bind(_channels)
     this.listRegisteredChannels = _channels.listRegisteredChannels.bind(_channels)
     _initialized = true
     this.setChannelsMap()
-
+    if (config?.baseHref) {
+      this.setHeadBaseHref(config.baseHref)
+    }
     return _config
+  }
+
+  setHeadBaseHref(str) {
+    // Create a new base element
+    const baseTag = document.createElement('base')
+    // Set the href attribute to the desired base URL
+    baseTag.href = str // You can set this to any base URL
+    // Append the base element to the head section of the document
+    document.head.appendChild(baseTag)
   }
 
   conformRouteConfig(add404Props = false) {
@@ -170,6 +182,10 @@ class SpyneAppPropertiesClass {
 
   getPluginConfigByPluginName(pluginName) {
     return _config.plugins[pluginName]
+  }
+
+  get IMG_PATH() {
+    return _IMG_PATH
   }
 
   tempGetChannelsInstance() {

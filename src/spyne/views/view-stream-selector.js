@@ -37,8 +37,17 @@ function testSelectors(cxt, sel, verboseBool) {
   }
 
   if (sel !== undefined && String(sel).trim().length > 0) {
-    const isEmptyQuery = el.querySelectorAll(sel)?.length === 0
-    if (verboseBool === true && isDevMode() === true && isEmptyQuery === true) {
+    function isValidSelector(selector) {
+      try {
+        const elements = document.querySelectorAll(selector)
+        return elements.length > 0 // Returns true if the selector is valid and selects at least one element
+      } catch (e) {
+        return false // Catching an exception means the selector is invalid
+      }
+    }
+
+    const isValidSelectorBool = isValidSelector(sel)
+    if (verboseBool === true && isDevMode() === true && isValidSelectorBool === false) {
       console.warn(`Spyne Warning: the selector, ${sel} does not exist in this el, ${cxt}`)
     }
   }

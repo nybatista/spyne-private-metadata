@@ -182,6 +182,55 @@ export class SpyneUtilsChannelRouteUrl {
     return urlsArr
   }
 
+  static checkForRouteValsPartMatch(urlsArr, data = {}) {
+    /**
+     * 1. Loop through urlsArr
+     * 2. Loop through properties
+     * 3. Apply matchGlobPattern to each property value and check for match with data object property
+     * 4. Return the updated object with matched values, or keep the original pattern if no match
+     */
+
+    const matchGlobPattern = (str, globPattern) => {
+      const globPatternMatch = (pattern, value) => {
+        const escapedPattern = pattern
+          .replace(/[-/\\^$+?.()|[\]{}]/g, '\\$&') // Escape special characters
+          .replace(/\*/g, '[\\w\\d_-]*') // * should match any sequence of alphanumeric, underscores, or dashes
+
+        const regexPattern = new RegExp(`^${escapedPattern}$`) // Match the full string
+        return regexPattern.test(value)
+      }
+
+      // Split the globPattern by pipe (|)
+      const patterns = globPattern.split('|')
+
+      // Check if the string matches any of the patterns
+      const hasMatch = patterns.some((pattern) => globPatternMatch(pattern, str))
+
+      // Return the string if there's a match, otherwise return the glob pattern
+      return hasMatch ? str : globPattern
+    }
+
+    // Function to check and replace matching properties
+    const replaceMatchingProperty = (obj) => {
+      const updatedObj = { ...obj } // Create a copy of the object to avoid mutation
+
+      // Function to check each property and apply matchGlobPattern
+      const checkAndReplaceProperty = (key) => {
+        if (Object.prototype.hasOwnProperty.call(updatedObj, key) && data[key]) {
+          updatedObj[key] = matchGlobPattern(data[key], updatedObj[key])
+        }
+      }
+
+      // Loop through the properties of the object
+      Object.keys(updatedObj).forEach(checkAndReplaceProperty)
+
+      return updatedObj
+    }
+
+    // Loop through the array and replace matching properties
+    return urlsArr.map(replaceMatchingProperty)
+  }
+
   static convertParamsToRoute(data, r = SpyneAppProperties.config.channels.ROUTE, t, locStr) {
     const urlType = t !== undefined ? t : r.type
     const isHash = r.isHash
@@ -192,7 +241,9 @@ export class SpyneUtilsChannelRouteUrl {
 
     urlArr = SpyneUtilsChannelRouteUrl.checkPayloadForRegexOverrides(urlArr, data)
     urlArr = SpyneUtilsChannelRouteUrl.checkForRouteValWithMultipleVals(urlArr)
-    //console.log('PARAMS TO ROUTE ', { data, r, urlArr, locationStr, paramsFromCurrentLocation })
+    // THIS WILL MATCH EXACTLY THE PROPERTY ID, SO pageId="dashboard_1" will return that instead of globPattern[0]
+    // urlArr = SpyneUtilsChannelRouteUrl.checkForRouteValsPartMatch(urlArr, data)
+    // console.log('PARAMS TO ROUTE ', { data, r, urlArr, locationStr, paramsFromCurrentLocation })
 
     // THIS CREATES A QUERY PATH STR
     if (urlType === 'query') {

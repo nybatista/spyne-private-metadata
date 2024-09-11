@@ -69,6 +69,8 @@ class SpyneApplication {
       scrollLockY: 0,
       debug: false,
       strict: false,
+      baseHref: undefined,
+      IMG_PATH: undefined,
       pluginMethods:{
 
       },

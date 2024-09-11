@@ -1,5 +1,6 @@
 import { includes, __, ifElse, path, prop, reject, is, isNil, isEmpty } from 'ramda'
 import sanitizeHTML from '../utils/sanitize-html'
+import { SpyneAppProperties } from '../utils/spyne-app-properties'
 
 /**
  * @module DomElTemplate
@@ -275,7 +276,9 @@ export class DomElementTemplate {
    */
 
   renderDocFrag() {
-    const html = sanitizeHTML(this.finalArr.join(''))
+    let html = DomElementTemplate.replaceImgPath(this.finalArr.join(''))
+    // html = sanitizeHTML(this.finalArr.join(''))
+    html = sanitizeHTML(html)
     const isTableSubTag =   /^([^>]*?)(<){1}(\b)(thead|col|colgroup|tbody|td|tfoot|tr|th)(\b)([^\0]*)$/.test(html)
     const el = isTableSubTag ? html : document.createRange().createContextualFragment(html)
 
@@ -284,7 +287,8 @@ export class DomElementTemplate {
   }
 
   renderToString() {
-    const html = this.finalArr.join('')
+    let html = this.finalArr.join('')
+    html = DomElementTemplate.replaceImgPath(html)
     window.setTimeout(this.removeThis, 2)
     return html
   }
@@ -308,6 +312,15 @@ export class DomElementTemplate {
       return DomElementTemplate.getNestedDataReducer(this.templateData, p2)
     }
     return str.replace(DomElementTemplate.swapParamsForTagsRE(), replaceTags)
+  }
+
+  static replaceImgPath(templateStr) {
+    const { IMG_PATH } = SpyneAppProperties
+    if (IMG_PATH !== undefined) {
+      templateStr = templateStr.replaceAll(/src\s*=\s*(['"])imgs\//g, `src=$1${IMG_PATH}`)
+      return templateStr.replaceAll(/url\(\s*(['"]?)imgs\//g, `url($1${IMG_PATH}`)
+    }
+    return templateStr
   }
 
   parseTheTmplLoop(str, p1, p2, p3) {
