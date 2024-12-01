@@ -207,15 +207,18 @@ export class Channel {
   createChannelActionMethods() {
     const defaultFn = 'onViewStreamInfo'
     const getActionVal = ifElse(is(String), identity, head)
+    const delayCheckIfTraitMethodHasBeenAdded = (methodStr, val)=>{
+      const delayer = ()=>{
+        if (typeof this[methodStr] !== 'function'){
+          console.warn(`"${this.props.name}", REQUIRES THE FOLLOWING METHOD ${methodStr} FOR ACTION, ${val[0]}`)
+        }
+      }
+      window.setTimeout(delayer, 100)
+    }
+
     const getCustomMethod = val => {
       const methodStr = view(lensIndex(1), val)
-      const hasMethod = typeof (this[methodStr]) === 'function'
-      if (hasMethod === true) {
-        this[methodStr].bind(this)
-      } else {
-        console.warn(`"${this.props.name}", REQUIRES THE FOLLOWING METHOD ${methodStr} FOR ACTION, ${val[0]}`)
-      }
-
+      delayCheckIfTraitMethodHasBeenAdded(methodStr, val);
       return methodStr
     }
 

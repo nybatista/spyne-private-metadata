@@ -827,9 +827,8 @@ export class ViewStream {
         console.warn(`Spyne Warning: The array returned from broadcastEvents in ${this.props.name}, '${JSON.stringify(eventsArr)}', does not appear to be properly formatted!`)
       }
     }
-
-    this.viewsStreamBroadcaster = new ViewStreamBroadcaster(this.props,
-      this.broadcastEvents.bind(this))
+    this.initializeChannels()
+    this.viewsStreamBroadcaster = new ViewStreamBroadcaster(this.props, this.broadcastEvents.bind(this))
     this.afterBroadcastEvents()
 
     this._postRenderedCalled = true
@@ -965,6 +964,20 @@ export class ViewStream {
   }
 
   /**
+   * CHECKS TO SEE IF CHANNELS HAVE BEEN ADDED TO props.channels object;
+   */
+  initializeChannels(){
+    const addChannel = (channel)=>{
+      const [channelName, skipFirst=false] = Array.isArray(channel) ? channel : [channel];
+      this?.addChannel(channelName, skipFirst);
+    }
+    if (Array.isArray(this?.props?.channels)) {
+      console.log("ADD CHANNELS FROM INITIALIZE CHANNELS",this?.props?.channels)
+      this?.props?.channels?.forEach(addChannel);
+    }
+  }
+
+  /**
    *
    * Preferred method to connect to instances of registered channels, such as 'DOM', 'UI', and 'ROUTE' channels.
    *
@@ -1001,7 +1014,10 @@ export class ViewStream {
       // return deepMerge(dirObj, p2);
       // Object.assign({$dir: directionArr}, clone(p))
     }
-
+    if (this?.props?.addedChannels?.includes(channelName) === true) {
+      // CHECKS IF CHANNEL HAS ALREADY BEEN ADDED
+      return
+    }
     const isLocalEventCheck = path(['srcElement', 'isLocalEvent'])
     const cidCheck = path(['srcElement', 'vsid'])
     const cidMatches = p => {
