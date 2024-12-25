@@ -22,7 +22,8 @@ import {
   prop,
   propEq
 } from 'ramda'
-const rMap = require('ramda').map
+
+import { map as rMap } from 'ramda'
 
 export class Channel {
   /**

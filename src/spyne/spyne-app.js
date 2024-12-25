@@ -62,7 +62,8 @@ class SpyneApplication {
       return
     }
 
-
+    //const imgPath = IMG_PATH || undefined;
+    const imgPath = (typeof IMG_PATH !== 'undefined') ? IMG_PATH : undefined;
     let defaultConfig = {
       scrollLock: false,
       scrollLockX: 31,
@@ -70,7 +71,7 @@ class SpyneApplication {
       debug: false,
       strict: false,
       baseHref: undefined,
-      IMG_PATH: undefined,
+      IMG_PATH: imgPath,
       pluginMethods:{
 
       },

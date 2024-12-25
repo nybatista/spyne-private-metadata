@@ -36,8 +36,9 @@ import {
   toPairs,
   reduce
 } from 'ramda'
-const ramdaFilter = require('ramda').filter
-const rMerge = require('ramda').mergeRight
+
+import { filter as ramdaFilter, mergeRight as rMerge } from 'ramda'
+
 export class SpyneChannelRoute extends Channel {
   constructor(name = 'CHANNEL_ROUTE', props = {}) {
     /**

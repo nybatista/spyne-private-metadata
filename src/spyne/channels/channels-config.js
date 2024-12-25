@@ -1,7 +1,6 @@
 import { SpyneAppProperties } from '../utils/spyne-app-properties'
 import { compose, path, is } from 'ramda'
-const Observable = require('rxjs')
-const Subject = require('rxjs')
+import {Observable, Subject} from 'rxjs';
 
 // console.log('channels config loaded ',R,Rx);
 const registeredStreamNames = () => ({

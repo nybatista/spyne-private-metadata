@@ -7,7 +7,7 @@ import { map, debounceTime, skipWhile } from 'rxjs/operators'
 import { curry, pick, partialRight, mapObjIndexed, apply } from 'ramda'
 import { deepMerge } from '../utils/deep-merge'
 
-const rMap = require('ramda').map
+import { map as rMap } from 'ramda'
 
 export class SpyneChannelWindow extends Channel {
   /**

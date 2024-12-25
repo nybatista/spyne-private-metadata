@@ -44,7 +44,7 @@ import {
   equals
 } from 'ramda'
 
-const rMap = require('ramda').map
+import { map as rMap } from 'ramda';
 
 export class ViewStream {
   /**
@@ -972,7 +972,6 @@ export class ViewStream {
       this?.addChannel(channelName, skipFirst);
     }
     if (Array.isArray(this?.props?.channels)) {
-      console.log("ADD CHANNELS FROM INITIALIZE CHANNELS",this?.props?.channels)
       this?.props?.channels?.forEach(addChannel);
     }
   }
@@ -1073,18 +1072,21 @@ export class ViewStream {
 
     const data = { payload, action }
 
-    data.srcElement = compose(pick(['id', 'vsid', 'class', 'tagName']), prop('props'))(this)
-    if (this.checkIfChannelExists(channelName) === true) {
-      if (/CHANNEL_LIFECYCLE/.test(action) === false) {
-        Object.defineProperties(data, {
-          payload: {
-            get: () => safeClone(pl)
-
-          }
-        })
+    try{
+      data.srcElement = compose(pick(['id', 'vsid', 'class', 'tagName']), prop('props'))(this)
+      if (this.checkIfChannelExists(channelName) === true) {
+        if (/CHANNEL_LIFECYCLE/.test(action) === false) {
+          Object.defineProperties(data, {
+            payload: {
+              get: () => safeClone(pl)
+            }
+          })
+        }
+        const obs$ = of(data)
+        return new ViewStreamPayload(channelName, obs$, data)
       }
-      const obs$ = of(data)
-      return new ViewStreamPayload(channelName, obs$, data)
+    } catch (e) {
+      console.warn("SPYNE WARNING ",e);
     }
   }
 
