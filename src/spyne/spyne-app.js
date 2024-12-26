@@ -2,7 +2,7 @@ import { ChannelsMap } from './channels/channels-map'
 import { ViewStream } from './views/view-stream'
 import { SpyneUtilsChannelRoute } from './utils/spyne-utils-channel-route'
 import { SpyneAppProperties } from './utils/spyne-app-properties'
-import sanitizeHTML, { sanitizeHTMLConfigure } from './utils/sanitize-html'
+import { sanitizeHTMLConfigure } from './utils/sanitize-html'
 
 const _channels = new ChannelsMap()
 const version = '0.20.0'
