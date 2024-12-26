@@ -123,7 +123,7 @@ describe('DomElTemplate', () => {
     const render = domElTemplate.renderDocFrag()
 
     const lastItemTxt = render.firstElementChild.querySelectorAll('li')[2].innerText
-    //console.log('render nested obj ', { render, lastItemTxt }, render.firstElementChild)
+    // console.log('render nested obj ', { render, lastItemTxt }, render.firstElementChild)
 
     // expect(lastItemTxt).to.equal('Welcome, john.');
     return true
