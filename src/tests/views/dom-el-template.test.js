@@ -122,8 +122,8 @@ describe('DomElTemplate', () => {
     const domElTemplate = new DomElementTemplate(template, data)
     const render = domElTemplate.renderDocFrag()
 
-    let lastItemTxt = render.firstElementChild.querySelectorAll('li')[2].innerText
-    console.log("render nested obj ",{render, lastItemTxt},render.firstElementChild);
+    const lastItemTxt = render.firstElementChild.querySelectorAll('li')[2].innerText
+    //console.log('render nested obj ', { render, lastItemTxt }, render.firstElementChild)
 
     // expect(lastItemTxt).to.equal('Welcome, john.');
     return true
@@ -142,7 +142,7 @@ describe('DomElTemplate', () => {
     expect(favFoodInnerText).to.equal('hummus, ')
   })
 
-  it('DomElementTemplate  renders objectt and loops array and loops obj params', () => {
+  it('DomElementTemplate  renders object and loops array and loops obj params', () => {
     let data = [
       { name: 'jane', hobbies: ['photography', 'driving', 'running'], details: { hair:'brown', eyes:'hazel' } },
       { name: 'joe', hobbies: [] },

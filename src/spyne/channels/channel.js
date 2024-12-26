@@ -21,9 +21,8 @@ import {
   equals,
   prop,
   propEq
+  , map as rMap
 } from 'ramda'
-
-import { map as rMap } from 'ramda'
 
 export class Channel {
   /**
@@ -208,9 +207,9 @@ export class Channel {
   createChannelActionMethods() {
     const defaultFn = 'onViewStreamInfo'
     const getActionVal = ifElse(is(String), identity, head)
-    const delayCheckIfTraitMethodHasBeenAdded = (methodStr, val)=>{
-      const delayer = ()=>{
-        if (typeof this[methodStr] !== 'function'){
+    const delayCheckIfTraitMethodHasBeenAdded = (methodStr, val) => {
+      const delayer = () => {
+        if (typeof this[methodStr] !== 'function') {
           console.warn(`"${this.props.name}", REQUIRES THE FOLLOWING METHOD ${methodStr} FOR ACTION, ${val[0]}`)
         }
       }
@@ -219,7 +218,7 @@ export class Channel {
 
     const getCustomMethod = val => {
       const methodStr = view(lensIndex(1), val)
-      delayCheckIfTraitMethodHasBeenAdded(methodStr, val);
+      delayCheckIfTraitMethodHasBeenAdded(methodStr, val)
       return methodStr
     }
 

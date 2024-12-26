@@ -35,9 +35,8 @@ import {
   replace,
   toPairs,
   reduce
+  , filter as ramdaFilter, mergeRight as rMerge
 } from 'ramda'
-
-import { filter as ramdaFilter, mergeRight as rMerge } from 'ramda'
 
 export class SpyneChannelRoute extends Channel {
   constructor(name = 'CHANNEL_ROUTE', props = {}) {

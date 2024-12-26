@@ -42,9 +42,8 @@ import {
   mergeRight,
   where,
   equals
+  , map as rMap
 } from 'ramda'
-
-import { map as rMap } from 'ramda';
 
 export class ViewStream {
   /**
@@ -966,13 +965,13 @@ export class ViewStream {
   /**
    * CHECKS TO SEE IF CHANNELS HAVE BEEN ADDED TO props.channels object;
    */
-  initializeChannels(){
-    const addChannel = (channel)=>{
-      const [channelName, skipFirst=false] = Array.isArray(channel) ? channel : [channel];
-      this?.addChannel(channelName, skipFirst);
+  initializeChannels() {
+    const addChannel = (channel) => {
+      const [channelName, skipFirst = false] = Array.isArray(channel) ? channel : [channel]
+      this?.addChannel(channelName, skipFirst)
     }
     if (Array.isArray(this?.props?.channels)) {
-      this?.props?.channels?.forEach(addChannel);
+      this?.props?.channels?.forEach(addChannel)
     }
   }
 
@@ -1072,7 +1071,7 @@ export class ViewStream {
 
     const data = { payload, action }
 
-    try{
+    try {
       data.srcElement = compose(pick(['id', 'vsid', 'class', 'tagName']), prop('props'))(this)
       if (this.checkIfChannelExists(channelName) === true) {
         if (/CHANNEL_LIFECYCLE/.test(action) === false) {
@@ -1086,7 +1085,7 @@ export class ViewStream {
         return new ViewStreamPayload(channelName, obs$, data)
       }
     } catch (e) {
-      console.warn("SPYNE WARNING ",e);
+      console.warn('SPYNE WARNING ', e)
     }
   }
 

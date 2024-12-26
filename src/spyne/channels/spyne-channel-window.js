@@ -4,10 +4,8 @@ import { SpyneAppProperties } from '../utils/spyne-app-properties'
 import { SpyneUtilsChannelWindow } from '../utils/spyne-utils-channel-window'
 import { merge } from 'rxjs'
 import { map, debounceTime, skipWhile } from 'rxjs/operators'
-import { curry, pick, partialRight, mapObjIndexed, apply } from 'ramda'
+import { curry, pick, partialRight, mapObjIndexed, apply, map as rMap } from 'ramda'
 import { deepMerge } from '../utils/deep-merge'
-
-import { map as rMap } from 'ramda'
 
 export class SpyneChannelWindow extends Channel {
   /**

@@ -5,8 +5,7 @@ import { SpyneChannelLifecycle } from './spyne-channel-lifecycle'
 
 import { Subject } from 'rxjs'
 import { ChannelProxy } from './channel-proxy'
-import { propEq, pluck, prop, filter, pathEq, reject, compose, join } from 'ramda'
-import { map as rMap } from 'ramda';
+import { propEq, pluck, prop, filter, pathEq, reject, compose, join, map as rMap } from 'ramda'
 
 const _map = new Map()
 

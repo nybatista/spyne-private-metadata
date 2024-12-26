@@ -19,11 +19,10 @@ import {
   any,
   curry,
   lte
+  , map as rMap
 } from 'ramda'
 
 import { SpyneAppProperties } from './spyne-app-properties'
-
-import { map as rMap } from 'ramda'
 
 const isNotArr = compose(not, is(Array))
 const isNotEmpty = compose(not, isEmpty)

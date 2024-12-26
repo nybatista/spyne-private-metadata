@@ -1,10 +1,11 @@
 import { ChannelsMap } from './channels/channels-map'
 import { ViewStream } from './views/view-stream'
+import { SpyneUtilsChannelRoute } from './utils/spyne-utils-channel-route'
 import { SpyneAppProperties } from './utils/spyne-app-properties'
-import { sanitizeHTMLConfigure } from './utils/sanitize-html'
+import sanitizeHTML, { sanitizeHTMLConfigure } from './utils/sanitize-html'
 
 const _channels = new ChannelsMap()
-const version = '0.19.7'
+const version = '0.20.0'
 
 class SpyneApplication {
   /**
@@ -41,7 +42,7 @@ class SpyneApplication {
   init(config = {}, testMode = false) {
     // this.channels = new ChannelsMap();
     /*!
-     * Spyne 0.19.7
+     * Spyne 0.20.0
      * https://spynejs.org
      *
      * @license Copyright 2017-2021, Frank Batista, Relevant Context, LLC. All rights reserved.
@@ -51,6 +52,8 @@ class SpyneApplication {
      * @email:  frbatista.nyc@gmail.com
     */
     /* eslint-disable */
+
+
 
 
     if(SpyneAppProperties.initialized === true){
@@ -109,7 +112,8 @@ class SpyneApplication {
       }
     };
     if (config !== undefined) {
-       config = SpyneAppProperties.initialize(defaultConfig, config, _channels);
+      const routeUtils = SpyneUtilsChannelRoute;
+       config = SpyneAppProperties.initialize(defaultConfig, config, _channels, routeUtils);
        //console.log("SPYNE APP PROPS ",SpyneAppProperties);
       //window.Spyne = this;
       //window.Spyne['config'] = deepMerge(defaultConfig, config)
@@ -129,8 +133,6 @@ class SpyneApplication {
     }
 
     sanitizeHTMLConfigure(SpyneAppProperties.config);
-
-
 
   }
 

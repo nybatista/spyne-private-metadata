@@ -15,7 +15,6 @@ import { ChannelPayloadFilter } from './utils/channel-payload-filter'
 import { SpynePlugin } from './spyne-plugins'
 import { deepMerge } from './utils/deep-merge'
 import { safeClone } from './utils/safe-clone'
-import sanitizeHTML from './utils/sanitize-html'
 import { SpyneAppProperties } from './utils/spyne-app-properties'
 import { SpyneApp } from './spyne-app'
 
@@ -38,6 +37,5 @@ export {
   SpyneAppProperties,
   SpynePlugin,
   deepMerge,
-  safeClone,
-  sanitizeHTML
+  safeClone
 }

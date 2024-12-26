@@ -1,4 +1,4 @@
-import { SpyneUtilsChannelRoute } from './spyne-utils-channel-route'
+// import { SpyneUtilsChannelRoute } from './spyne-utils-channel-route'
 import { SpynePluginsMethods } from './spyne-plugins-methods'
 import { deepMerge } from './deep-merge'
 import { path } from 'ramda'
@@ -48,12 +48,13 @@ class SpyneAppPropertiesClass {
     return Array.from(_channels.map.keys())
   }
 
-  initialize(defaultConfig = {}, config = {}, channelsMap) {
+  initialize(defaultConfig = {}, config = {}, channelsMap, routeUtils) {
     _channels = channelsMap
     _config = deepMerge(defaultConfig, config)
     // console.log("config is ", { defaultConfig,config });
     if (_config.channels && _config.channels.ROUTE) {
-      _config = SpyneUtilsChannelRoute.conformRouteObject(_config)
+      // _config = SpyneUtilsChannelRoute.conformRouteObject(_config)
+      _config = routeUtils.conformRouteObject(_config)
     }
     _IMG_PATH = _config?.IMG_PATH
     _debug = _config.debug !== undefined ? _config.debug : _debug
@@ -81,6 +82,7 @@ class SpyneAppPropertiesClass {
      * THIS METHOD IS PRIMARILY USED FOR SPA GEN SITE GENERATION
      */
 
+    // eslint-disable-next-line no-undef
     _config = SpyneUtilsChannelRoute.conformRouteObject(_config, add404Props)
   }
 

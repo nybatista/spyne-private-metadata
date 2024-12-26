@@ -127,7 +127,30 @@ const pullRouteInfo = () => {
   return { routeId, params }
 }
 
-const getAllMethodNames = (_this = this, omittedMethods = []) => {
+function getAllMethodNames(instance, omittedMethods = []) {
+  // Optionally rename `instance` to something more descriptive:
+  const baseClassMethodsArr = ['length', 'name', 'prototype', 'constructor']
+  const combinedOmittedMethods = concat(baseClassMethodsArr, omittedMethods)
+
+  // Filter out omitted
+  const omitPropsFromArr = compose(without(combinedOmittedMethods), uniq)
+
+  // Pull out instance methods
+  const methods = omitPropsFromArr(
+    Object.getOwnPropertyNames(instance.constructor.prototype)
+  )
+
+  // Pull out static methods
+  const staticMethods = omitPropsFromArr(
+    Object.getOwnPropertyNames(instance.constructor)
+  )
+
+  const allMethods = concat(methods, staticMethods)
+
+  return { methods, staticMethods, allMethods }
+}
+
+/* const getAllMethodNames3 = (_this = this, omittedMethods = []) => {
   const getPropNamesArr = (obj = this, omittedMethods = []) => {
     return Object.getOwnPropertyNames(obj)
   }
@@ -143,7 +166,7 @@ const getAllMethodNames = (_this = this, omittedMethods = []) => {
 
   return { methods, staticMethods, allMethods }
   // return 'fn';
-}
+} */
 
 // ROUTE REGEX EXPRESSIONS
 const removeSlashes = str => str.replace(/^(\/)(.*)/g, '$2')
