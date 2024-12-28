@@ -1,6 +1,7 @@
 import { DomElement } from './views/dom-element'
 import { SpyneAppProperties } from './utils/spyne-app-properties'
 import { is, clone, pathSatisfies } from 'ramda'
+let _spyneAppProps = SpyneAppProperties
 export class SpynePlugin {
   constructor(props = {}) {
     let { name, config, parentEl } = props
@@ -14,15 +15,52 @@ export class SpynePlugin {
     this.props.name = name
     config = SpynePlugin.mergeDefaultConfig(config, this.defaultConfig())
     this.props.parentEl = parentEl || SpynePlugin.createParentEl()
-    SpynePlugin.getSpyneApp(name, config)
-
+    // SpynePlugin.getSpyneApp(name, config)
+    this.props.config = config
     if (this.props.traits !== undefined) {
       this.addTraits(this.props.traits)
     }
 
-    this.onBeforeRegistered()
+    console.log('PLUGIN MAIN CONTRUCTOR ', { config }, this)
+
+    // this.onBeforeRegistered()
+    // this.onRegistered()
+    // this.onRender()
+  }
+
+  /**
+   * Now this method will be called when the app decides to register the plugin.
+   * This way, the plugin no longer has to import or rely on its own version
+   * of SpyneAppProperties. Instead, it is *passed* the authoritative instance.
+   */
+  register(spyneAppProps) {
+    // 1. Save a reference to the real SpyneAppProperties
+    _spyneAppProps = spyneAppProps
+    this.props.pluginName = this.props.name
+    // this.props.config = _spyneAppProps.getPluginConfigByPluginName(this.props.pluginName)
+
+    console.log('THIS IS ', _spyneAppProps, _spyneAppProps.initialized === false)
+    if (_spyneAppProps.initialized === false) {
+      console.warn(
+          `Spyne Warning: SpyneApp has not been initialized yet! Cannot register plugin "${this.name}".`
+      )
+      return
+    }
+
+    // 2. Add plugin config in the real SpyneAppProperties
+    _spyneAppProps.addPluginConfig(this.name, this.props.config)
+
+    // If you have plugin-level logic that depends on the real spyneApp,
+    // you can add it here, e.g.:
+    // spyneAppProps.addPluginMethods(this.props.config.pluginMethods)
+
+    // 3. If you have other plugin lifecycle methods
     this.onRegistered()
     this.onRender()
+  }
+
+  get SpyneAppProperties() {
+    return _spyneAppProps
   }
 
   static mergeDefaultConfig(config = {}, defaultConfig = this.defaultConfig()) {
@@ -30,11 +68,11 @@ export class SpynePlugin {
   }
 
   static getSpyneApp(name, config) {
-    if (SpyneAppProperties.initialized === false) {
+    if (_spyneAppProps.initialized === false) {
       console.warn(`Spyne Warning: Unable to install plugin, ${name}! SpyneApp has not been initialized!`)
       // SpyneApp.init()
     } else {
-      SpyneAppProperties.addPluginConfig(name, config)
+      _spyneAppProps.addPluginConfig(name, config)
     }
   }
 
@@ -83,7 +121,7 @@ export class SpynePlugin {
 
   onBeforeRegistered() {
     this.props.pluginName = this.props.name
-    this.props.config = SpyneAppProperties.getPluginConfigByPluginName(this.props.pluginName)
+    this.props.config = _spyneAppProps.getPluginConfigByPluginName(this.props.pluginName)
   }
 
   defaultConfig() {

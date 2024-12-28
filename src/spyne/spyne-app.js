@@ -121,6 +121,7 @@ class SpyneApplication {
     this.pluginsFn = SpyneAppProperties.getPluginsMethodObj(config['pluginMethods']);
     this.getChannelActions = (str) => _channels.getChannelActions(str);
     this.registerChannel = (val) => _channels.registerStream(val);
+    this.registerPlugin = (pluginInstance) => SpyneAppProperties.registerPlugin(pluginInstance);
     this.registerDataChannel = (obs$) => _channels.registerStream(obs$);
     this.listChannels = () => Array.from(_channels.map.keys());
     let nullHolder = new ViewStream({ id:'spyne-null-views' });
