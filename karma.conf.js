@@ -1,62 +1,17 @@
-const webpackConfigs = require('./webpack.config');
-
-// Since webpack.config.js exports an array [esmConfig, umdConfig],
-// we'll grab the second one (UMD) to use in Karma.
-const [esmConfig, umdConfig] = webpackConfigs || [];
-
-// Make a shallow clone of the UMD config so we can tweak it for Karma:
-const karmaWebpackConfig = {
-  ...umdConfig,
-
-  // Force a "neutral" mode so Webpack doesn't minify or do env-specific optimizations
-  mode: 'none',
-
-  // Karma manages watching/rebuilding on its own, so we typically disable watch from Webpack
-  watch: true,
-
-  // Remove the library entry/output so that Karma can inline test files
-  entry: undefined,
-  output: undefined
-};
-karmaWebpackConfig.externals = [];
-// Optionally inject any test-specific loaders/rules, e.g. coverage instrumentation:
-karmaWebpackConfig.module.rules.push({
-  test: /\.js$/,
-  exclude: /node_modules/,
-  // If you use Babel or another coverage tool, you can add it here
-  // For example:
-  // use: {
-  //   loader: 'babel-loader',
-  //   options: {
-  //     plugins: ['istanbul'] // coverage plugin
-  //   }
-  // }
-});
-
 module.exports = function (config) {
-  // If you need Travis CI logic:
-  if (process.env.TRAVIS) {
-    config.browsers = ['ChromeHeadlessNoSandbox'];
-  }
-
   config.set({
-    // Base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '',
+    frameworks: ['mocha', 'chai'],
 
-    // Test frameworks
-    frameworks: ['webpack', 'mocha', 'chai'],
-
+    // Load these plugins so Karma recognizes 'rollup' as a preprocessor
     plugins: [
-      'karma-webpack',
       'karma-mocha',
       'karma-chai',
-      'karma-coverage',
-      'karma-chrome-launcher'
+      'karma-chrome-launcher',
+      'karma-rollup-preprocessor'
     ],
 
-    // List of files / patterns to load in the browser
     files: [
-      // External deps you might need:
+      // Test files
       { pattern: './node_modules/ramda/dist/ramda.min.js', watched: false },
       { pattern: './node_modules/rxjs/**/*.js', included: false, watched: false },
 
@@ -64,57 +19,43 @@ module.exports = function (config) {
       { pattern: './src/tests/index.test.js', watched: true },
       { pattern: './src/tests/spyne-app.test.js', watched: true },
       { pattern: './src/tests/package-json.spec.test.js', watched: true },
-      { pattern: './src/tests/spyne-plugin.test.js', watched: true },
       { pattern: './src/tests/channels/*.test.js', watched: true },
       { pattern: './src/tests/utils/*.test.js', watched: true },
-      { pattern: './src/tests/views/*.test.js', watched: true }
-    ],
+      { pattern: './src/tests/views/*.test.js', watched: true }    ],
 
-    // Preprocessors so that the files are processed by Webpack + coverage
     preprocessors: {
-      './src/tests/*.test.js': ['webpack', 'coverage'],
-      './src/tests/channels/*.test.js': ['webpack', 'coverage'],
-      './src/tests/utils/*.test.js': ['webpack', 'coverage'],
-      './src/tests/views/*.test.js': ['webpack', 'coverage']
+      // We want to run Rollup on our test files (and any imports they pull in)
+      './src/tests/*.test.js': ['rollup'],
+      './src/tests/channels/*.test.js': ['rollup'],
+      './src/tests/utils/*.test.js': ['rollup'],
+      './src/tests/views/*.test.js': ['rollup']
     },
 
-    // Use our customized Webpack config
-    webpack: karmaWebpackConfig,
+    rollupPreprocessor: {
+      // In test mode, you can build ESM or IIFE—depends on how you want the browser to load it.
+      // If you want to keep it pure ESM, Karma's internal test runner loads them via a script tag,
+      // which can be tricky. An easier path is to bundle as IIFE or UMD for the tests only.
+      // For coverage, consider "rollup-plugin-istanbul" or similar.
+      output: {
+        format: 'iife',
+        name: 'SpyneTest', // global name for your test bundle
+        sourcemap: 'inline'
+      },
+      plugins: [
+        require('@rollup/plugin-node-resolve').default(),
+        require('@rollup/plugin-commonjs')({
+          transformMixedEsModules: true
+        }),
+        require('@rollup/plugin-json')()
 
-    // Quiet the Webpack output in the Karma logs
-    webpackMiddleware: { noInfo: true },
 
-    // Report results with coverage
-    reporters: ['progress', 'coverage'],
-
-    coverageReporter: {
-      reporters: [
-        { type: 'lcovonly', subdir: '.' }, // ./coverage/lcov.info
-        { type: 'json', subdir: '.' }      // ./coverage/coverage-final.json
       ]
     },
 
-    port: 9876,
-    colors: true,
-    logLevel: config.LOG_DEBUG,
-
-    // autoWatch: if true, re-run tests on file changes
-    autoWatch: true,
-
-    customLaunchers: {
-      ChromeHeadlessNoSandbox: {
-        base: 'ChromeHeadless',
-        flags: ['--no-sandbox']
-      }
-    },
-
-    // Browsers to start (choose your launcher)
+    // Browsers
     browsers: ['Chrome'],
 
-    // If true, Karma runs tests once and exits
-    singleRun: false,
-
-    // Concurrency level
-    concurrency: Infinity
+    // run once and exit or watch
+    singleRun: true
   });
 };

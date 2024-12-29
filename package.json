@@ -1,6 +1,6 @@
 {
   "name": "spyne",
-  "version": "0.20.2",
+  "version": "0.20.4",
   "description": "Reactive Real-DOM Framework for Advanced Javascript applications",
   "sideEffects": true,
   "main": "./lib/spyne.esm.js",
@@ -67,6 +67,7 @@
     "karma-chrome-launcher": "^3.2.0",
     "karma-coverage": "^2.2.1",
     "karma-mocha": "^2.0.1",
+    "karma-rollup-preprocessor": "^7.0.8",
     "karma-webpack": "^5.0.1",
     "mocha": "^10.7.3",
     "rollup": "^2.79.2",
