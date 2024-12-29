@@ -1,3 +1,13 @@
+const replace = require('@rollup/plugin-replace');
+const dotenv = require('dotenv');
+dotenv.config();
+
+module.exports = function (config) {
+  // ...
+  // Use process.env.IS_PUBLIC as needed
+  // ...
+};
+
 module.exports = function (config) {
 
   if (process.env.TRAVIS) {
@@ -37,23 +47,26 @@ module.exports = function (config) {
     },
 
     rollupPreprocessor: {
-      // In test mode, you can build ESM or IIFE—depends on how you want the browser to load it.
-      // If you want to keep it pure ESM, Karma's internal test runner loads them via a script tag,
-      // which can be tricky. An easier path is to bundle as IIFE or UMD for the tests only.
-      // For coverage, consider "rollup-plugin-istanbul" or similar.
       output: {
         format: 'iife',
-        name: 'SpyneTest', // global name for your test bundle
+        name: 'SpyneTest',
         sourcemap: 'inline'
       },
       plugins: [
+        replace({
+          // The replacement you want to do:
+          'process.env.IS_PUBLIC': JSON.stringify(process.env.IS_PUBLIC === 'true'),
+          // Or if you'd rather fallback to 'false' if not set:
+          // 'process.env.IS_PUBLIC': JSON.stringify(process.env.IS_PUBLIC ?? 'false'),
+
+          preventAssignment: true
+        }),
+
         require('@rollup/plugin-node-resolve').default(),
         require('@rollup/plugin-commonjs')({
           transformMixedEsModules: true
         }),
         require('@rollup/plugin-json')()
-
-
       ]
     },
 

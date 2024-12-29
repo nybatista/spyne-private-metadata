@@ -13,3 +13,4 @@ lib
 !lib/spyne*.js
 dist/
 repo-scripts/*
+.env
