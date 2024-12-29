@@ -139,10 +139,12 @@ export class DomElementTemplate {
     this.template = this.formatTemplate(template)
     this.isProxyData = data.__cms__isProxy === true
 
+    // SpyneJS Enterprise Code Start
     if (this.isProxyData === true) {
       // data['cmsId'] = data.__cms__dataId;
       this.template = DomElementTemplate.formatTemplateForProxyData(this.template)
     }
+    // SpyneJS Enterprise Code End
 
     const checkForArrayData = () => {
       if (is(Array, data) === true) {
@@ -182,6 +184,7 @@ export class DomElementTemplate {
     return /({{\.\*?}})/.test(str)
   }
 
+  // SpyneJS Enterprise Code Start
   // ADD PARAMS TO TRACK PROXY DATA
   static formatTemplateForProxyData(tmpl) {
     const reLines2 = /(({{(?!loopNum|loopIndex))(.*?)(}}))/gm
@@ -228,6 +231,7 @@ export class DomElementTemplate {
 
     return String(tmpl).replace(reLines1, reMethod)
   }
+  // SpyneJS Enterprise Code End
 
   // FIND CORRECT NESTED DATA
   static getNestedDataReducer(data = {}, param = '') {
