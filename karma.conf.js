@@ -1,4 +1,9 @@
 module.exports = function (config) {
+
+  if (process.env.TRAVIS) {
+    config.browsers = ['ChromeHeadlessNoSandbox'];
+  }
+
   config.set({
     frameworks: ['mocha', 'chai'],
 
