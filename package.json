@@ -3,16 +3,15 @@
   "version": "0.20.2",
   "description": "Reactive Real-DOM Framework for Advanced Javascript applications",
   "sideEffects": true,
-  "main": "./lib/spyne.umd.js",
+  "main": "./lib/spyne.esm.js",
   "module": "./lib/spyne.esm.js",
   "exports": {
     ".": {
-      "import": "./src/spyne/spyne.js",
-      "require": "./lib/spyne.umd.js"
+      "import": "./lib/spyne.esm.js",
+      "require": "./lib/spyne.esm.js"
     },
     "./lib/*": "./lib/*.js"
   },
-
   "scripts": {
     "eslint-fix-dry": "eslint 'src/spyne/**' --fix-dry-run",
     "eslint-fix": "eslint --fix 'src/spyne/**'",
@@ -30,7 +29,8 @@
     "test:single": "karma start karma.conf.js --single-run",
     "watch:test": "npm test -- --auto-watch --no-single-run",
     "test:mocha": "mocha tests",
-    "lint": "eslint 'src/spyne/**' --fix"
+    "lint": "eslint 'src/spyne/**' --fix",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -61,6 +61,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-webpack-plugin": "^4.2.0",
     "file-loader": "^6.2.0",
+    "husky": "^9.1.7",
     "karma": "^6.4.4",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^3.2.0",
@@ -76,11 +77,7 @@
     "webpack-dev-server": "^5.1.0",
     "webpack-rxjs-externals": "^2.0.0"
   },
-  "config": {
-    "ghooks": {
-      "pre-commit": "npm run test"
-    }
-  },
+  "config": {},
   "dependencies": {
     "dompurify": "^3.1.6",
     "ramda": "^0.30.1",

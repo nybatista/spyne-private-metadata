@@ -21,8 +21,6 @@ export class SpynePlugin {
       this.addTraits(this.props.traits)
     }
 
-    console.log('PLUGIN MAIN CONTRUCTOR ', { config }, this)
-
     // this.onBeforeRegistered()
     // this.onRegistered()
     // this.onRender()
@@ -37,9 +35,9 @@ export class SpynePlugin {
     // 1. Save a reference to the real SpyneAppProperties
     _spyneAppProps = spyneAppProps
     this.props.pluginName = this.props.name
+
     // this.props.config = _spyneAppProps.getPluginConfigByPluginName(this.props.pluginName)
 
-    console.log('THIS IS ', _spyneAppProps, _spyneAppProps.initialized === false)
     if (_spyneAppProps.initialized === false) {
       console.warn(
           `Spyne Warning: SpyneApp has not been initialized yet! Cannot register plugin "${this.name}".`
@@ -47,7 +45,10 @@ export class SpynePlugin {
       return
     }
 
+    this.onBeforeRegistered()
+
     // 2. Add plugin config in the real SpyneAppProperties
+    this.props.config = clone(this.props.config)
     _spyneAppProps.addPluginConfig(this.name, this.props.config)
 
     // If you have plugin-level logic that depends on the real spyneApp,
@@ -120,8 +121,8 @@ export class SpynePlugin {
   }
 
   onBeforeRegistered() {
-    this.props.pluginName = this.props.name
-    this.props.config = _spyneAppProps.getPluginConfigByPluginName(this.props.pluginName)
+    // this.props.pluginName = this.props.name
+    // this.props.config = _spyneAppProps.getPluginConfigByPluginName(this.props.pluginName)
   }
 
   defaultConfig() {
