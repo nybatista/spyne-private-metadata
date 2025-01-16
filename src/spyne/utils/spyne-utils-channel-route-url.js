@@ -254,9 +254,23 @@ export class SpyneUtilsChannelRouteUrl {
   }
 
   static findIndexOfMatchedStringOrRegex(mainStr, paramsArr) {
+    const is404 = paramsArr.includes('.+')
+
+    const reFn = (s) => {
+      if (is404) {
+        if (!s.startsWith('^')) {
+          s = '^' + s
+        }
+        if (!s.endsWith('$')) {
+          s = s + '$'
+        }
+      }
+
+      return new RegExp(s)
+    }
+
     const checkForEmpty =  replace(/^$/, '^$')
     const createStrRegexTest = (str) => {
-      const reFn = s => new RegExp(s)
       return {
         str,
         re: reFn(str)

@@ -314,11 +314,23 @@ export class SpyneChannelUI extends Channel {
   }
 
   onUIEvent(obs) {
+    function domStringMapToObject(domStringMap) {
+      const obj = {}
+      for (const key in domStringMap) {
+        // Check if it’s a direct property (though dataset rarely has anything on the prototype):
+        if (Object.prototype.hasOwnProperty.call(domStringMap, key)) {
+          obj[key] = domStringMap[key]
+        }
+      }
+      return obj
+    }
+
     SpyneChannelUI.checkForEventMethods(obs)
     obs.action = this.getActionState(obs)
     const action = obs.action// this.getActionState(obs);
-    const { payload, srcElement } = obs
+    const { srcElement } = obs
     const event = obs.event
+    const payload = domStringMapToObject(srcElement?.el?.dataset) ?? obs.payload
     this.sendChannelPayload(action, payload, srcElement, event)
   }
 }
