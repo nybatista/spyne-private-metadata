@@ -8,6 +8,8 @@ let _channels
 let _channelsMap
 let _initialized
 let _debug = true
+let _excludeChannelsFromConsole = [];
+let _linksData;
 let _IMG_PATH
 const _doNotTrackChannelsArr = []
 const _proxiesMap = new Map()
@@ -199,6 +201,37 @@ class SpyneAppPropertiesClass {
 
   get IMG_PATH() {
     return _IMG_PATH
+  }
+
+  get excludeChannelsFromConsole() {
+    return _excludeChannelsFromConsole;
+  }
+
+  // Setter for _excludeChannelsFromConsole
+  set excludeChannelsFromConsole(value) {
+    if (typeof value === 'string') {
+      // Push a single string into the array if not already present
+      if (!_excludeChannelsFromConsole.includes(value)) {
+        _excludeChannelsFromConsole.push(value);
+      }
+    } else if (Array.isArray(value)) {
+      // Merge an array into the existing array, avoiding duplicates
+      value.forEach(item => {
+        if (typeof item === 'string' && !_excludeChannelsFromConsole.includes(item)) {
+          _excludeChannelsFromConsole.push(item);
+        }
+      });
+    } else {
+      console.warn('Invalid value provided to excludeChannelsFromConsole. Only strings or arrays are allowed.');
+    }
+  }
+
+  get linksData(){
+    return _linksData;
+  }
+
+  set linksData(arr){
+    _linksData = arr;
   }
 
   tempGetChannelsInstance() {

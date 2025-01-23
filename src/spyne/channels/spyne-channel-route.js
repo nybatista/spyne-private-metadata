@@ -238,6 +238,7 @@ export class SpyneChannelRoute extends Channel {
     // ===============================================================
     if (actn === 'CHANNEL_ROUTE_DEEPLINK_EVENT') {
       payload.linksData = prop('routeDatasetsArr', config)
+      SpyneAppProperties.linksData = payload.linksData;
     }
     const keywordArrs = this.compareRouteKeywords.compare(payload.routeData, payload.paths)
     payload = rMerge(payload, keywordArrs)
