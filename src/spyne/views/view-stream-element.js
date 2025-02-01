@@ -1,7 +1,7 @@
-import { DomElement } from './dom-element'
-import { fadein, fadeout } from '../utils/viewstream-animations'
-import { ViewStreamObservable } from '../utils/viewstream-observables'
-import { deepMerge } from '../utils/deep-merge'
+import { DomElement } from './dom-element.js'
+import { fadein, fadeout } from '../utils/viewstream-animations.js'
+import { ViewStreamObservable } from '../utils/viewstream-observables.js'
+import { deepMerge } from '../utils/deep-merge.js'
 import { Subject, bindCallback } from 'rxjs'
 import { filter, isNil, pick, props, defaultTo } from 'ramda'
 

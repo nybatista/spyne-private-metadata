@@ -1,7 +1,7 @@
-import { Channel } from './channel'
-import { SpyneUtilsChannelRouteUrl } from '../utils/spyne-utils-channel-route-url'
-import { SpyneUtilsChannelRoute } from '../utils/spyne-utils-channel-route'
-import { SpyneAppProperties } from '../utils/spyne-app-properties'
+import { Channel } from './channel.js'
+import { SpyneUtilsChannelRouteUrl } from '../utils/spyne-utils-channel-route-url.js'
+import { SpyneUtilsChannelRoute } from '../utils/spyne-utils-channel-route.js'
+import { SpyneAppProperties } from '../utils/spyne-app-properties.js'
 import { ReplaySubject, merge } from 'rxjs'
 import { map } from 'rxjs/operators'
 
@@ -238,7 +238,7 @@ export class SpyneChannelRoute extends Channel {
     // ===============================================================
     if (actn === 'CHANNEL_ROUTE_DEEPLINK_EVENT') {
       payload.linksData = prop('routeDatasetsArr', config)
-      SpyneAppProperties.linksData = payload.linksData;
+      SpyneAppProperties.linksData = payload.linksData
     }
     const keywordArrs = this.compareRouteKeywords.compare(payload.routeData, payload.paths)
     payload = rMerge(payload, keywordArrs)

@@ -1,4 +1,4 @@
-import { Channel } from './channel'
+import { Channel } from './channel.js'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { equals, path, compose, prop, filter, replace, lensProp, over, omit, test, keys, either, toUpper } from 'ramda'

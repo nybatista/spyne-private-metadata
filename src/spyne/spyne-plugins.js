@@ -1,5 +1,5 @@
-import { DomElement } from './views/dom-element'
-import { SpyneAppProperties } from './utils/spyne-app-properties'
+import { DomElement } from './views/dom-element.js'
+import { SpyneAppProperties } from './utils/spyne-app-properties.js'
 import { is, clone, pathSatisfies } from 'ramda'
 let _spyneAppProps = SpyneAppProperties
 export class SpynePlugin {

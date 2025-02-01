@@ -1,5 +1,5 @@
 import { isEmpty, head, values, compose, prop, complement, isNil, allPass, reduce, filter, equals, toPairs, replace, either, propEq, __, invert, path, zipObj, reject, keys, find, assoc, is, has, when, split, always, concat, join, flatten, map, ifElse, test, findLastIndex, last, defaultTo, fromPairs } from 'ramda'
-import { SpyneAppProperties } from './spyne-app-properties'
+import { SpyneAppProperties } from './spyne-app-properties.js'
 
 export class SpyneUtilsChannelRouteUrl {
   constructor() {

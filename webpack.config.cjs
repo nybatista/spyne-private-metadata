@@ -1,4 +1,4 @@
-// webpack.config.js
+// webpack.config.cjs
 const path = require('path');
 const webpack = require('webpack');
 const ESLintPlugin = require('eslint-webpack-plugin');
@@ -25,9 +25,22 @@ function baseConfig(mode) {
     },
     plugins: [
       new ESLintPlugin({
-        fix: true,
-        extensions: ['js'],
-        exclude: ['node_modules']
+        "fix": true,
+        "extensions": ["js"],
+        "exclude": ["node_modules"],
+        "overrideConfig": {
+          "parserOptions": {
+            "ecmaVersion": 2022
+          },
+          "settings": {
+            "node": {
+              "version": ">=14"
+            }
+          },
+          "rules": {
+            "node/no-unsupported-features/es-syntax": "off"
+          }
+        }
       }),
       new webpack.BannerPlugin({
         banner: `spynejs ${pkg.version}\nhttps://spynejs.org\n(c) 2017-present Frank Batista`,

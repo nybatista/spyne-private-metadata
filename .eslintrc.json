@@ -1,0 +1,69 @@
+{
+  "extends": [
+  "standard",
+  "plugin:node/recommended"
+],
+  "env": {
+    "node": true
+  },
+  "settings": {
+    "node": {
+      "version": ">=14.0.0"  // or your actual Node version range
+    }
+  },
+
+    "globals": {
+  "requestAnimationFrame": true
+},
+  "plugins": [
+  "node"
+],
+  "parserOptions": {
+    "ecmaVersion": 2022,   // or "latest" / 2022
+    "sourceType": "module"
+  },
+    "rules": {
+      "key-spacing": [0,
+    {
+      "beforeColon": false,
+      "afterColon": true
+    }
+  ],
+      "space-before-function-paren": [
+    "error",
+    {
+      "anonymous": "never",
+      "named": "never",
+      "asyncArrow": "never"
+    }
+  ],
+      "no-new": "off",
+      "camelcase": "off",
+      "no-unused-vars": [
+    "error",
+    {
+      "caughtErrors": "none",
+      "args": "none"
+    }
+  ],
+      "arrow-spacing": [
+    "error",
+    {
+      "before": true,
+      "after": true
+    }
+  ],
+      "no-return-assign": [
+    "error",
+    "except-parens"
+  ],
+      "no-multi-spaces": [
+    "error",
+    {
+      "exceptions": {
+        "VariableDeclarator": true
+      }
+    }
+  ]
+}
+}

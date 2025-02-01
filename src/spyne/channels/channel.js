@@ -1,7 +1,7 @@
-import { registeredStreamNames } from './channels-config'
-import { ChannelPayload } from './channel-payload-class'
-import { SpyneAppProperties } from '../utils/spyne-app-properties'
-import { RouteChannelUpdater } from '../utils/route-channel-updater'
+import { registeredStreamNames } from './channels-config.js'
+import { ChannelPayload } from './channel-payload-class.js'
+import { SpyneAppProperties } from '../utils/spyne-app-properties.js'
+import { RouteChannelUpdater } from '../utils/route-channel-updater.js'
 import { ReplaySubject, Subject, forkJoin, combineLatest } from 'rxjs'
 import { filter, map, take } from 'rxjs/operators'
 import {
