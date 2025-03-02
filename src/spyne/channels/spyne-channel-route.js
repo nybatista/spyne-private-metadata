@@ -237,8 +237,23 @@ export class SpyneChannelRoute extends Channel {
     }
     // ===============================================================
     if (actn === 'CHANNEL_ROUTE_DEEPLINK_EVENT') {
-      payload.linksData = prop('routeDatasetsArr', config)
-      SpyneAppProperties.linksData = payload.linksData
+      payload.navLinks = prop('routeDatasetsArr', config)
+      // payload.linksData = payload.navLinks
+      // SpyneAppProperties.linksData = payload.navLinks
+
+      // define an alias property using Object.defineProperty
+      Object.defineProperty(payload, 'linksData', {
+        get() {
+          console.warn('get links data is deprecated in ROUTE DEEPLINK DATA, use navLinks')
+          return this.navLinks
+        },
+        set(value) {
+          console.warn('set links data is deprecated in ROUTE DEEPLINK DATA, use navLinks')
+
+          // this.navLinks = value;
+        },
+        enumerable: true
+      })
     }
     const keywordArrs = this.compareRouteKeywords.compare(payload.routeData, payload.paths)
     payload = rMerge(payload, keywordArrs)
@@ -337,6 +352,22 @@ export class SpyneChannelRoute extends Channel {
 
   onViewStreamInfo(pl) {
     const action = this.channelActions.CHANNEL_ROUTE_CHANGE_EVENT
+
+    function domStringMapToObject(domStringMap) {
+      const obj = {}
+      for (const key in domStringMap) {
+        // Check if it’s a direct property (though dataset rarely has anything on the prototype):
+        if (Object.prototype.hasOwnProperty.call(domStringMap, key)) {
+          obj[key] = domStringMap[key]
+        }
+      }
+      return obj
+    }
+
+    pl.payload = domStringMapToObject(pl?.srcElement?.el?.dataset) ?? pl.payload
+
+    console.log('ROUTE CHANNEL VSI ', { pl })
+
     SpyneChannelRoute.checkForEventMethods(pl)
     pl = this.checkForEndRoute(pl)
     let payload = this.getDataFromParams(pl)

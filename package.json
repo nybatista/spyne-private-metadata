@@ -3,13 +3,16 @@
   "version": "0.20.6",
   "description": "Reactive Real-DOM Framework for Advanced Javascript applications",
   "sideEffects": true,
-  "main": "./lib/spyne.esm.js",
-  "module": "./lib/spyne.esm.js",
+  "engines": {
+    "node": ">=14"
+  },
+  "main": "./src/spyne/spyne.js",
+  "module": "./src/spyne/spyne.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./lib/spyne.esm.js",
-      "require": "./lib/spyne.esm.js"
+      "import": "./src/spyne/spyne.js",
+      "require": "./src/spyne/spyne.js"
     },
     "./lib/*": "./lib/*.js"
   },

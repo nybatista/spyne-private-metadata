@@ -9,7 +9,9 @@ let _channelsMap
 let _initialized
 let _debug = true
 const _excludeChannelsFromConsole = []
+/* eslint-disable */
 let _linksData
+let _navLinks
 let _IMG_PATH
 const _doNotTrackChannelsArr = []
 const _proxiesMap = new Map()
@@ -227,11 +229,20 @@ class SpyneAppPropertiesClass {
   }
 
   get linksData() {
-    return _linksData
+    console.warn('get links data in SpyneAppProperties is deprecated, use navLinks')
+    return _navLinks
   }
 
   set linksData(arr) {
-    _linksData = arr
+    console.warn('set links data in SpyneAppProperties is deprecated, use navLinks')
+  }
+
+  get navLinks() {
+    return _navLinks
+  }
+
+  set navLinks(arr) {
+    _navLinks = arr
   }
 
   tempGetChannelsInstance() {

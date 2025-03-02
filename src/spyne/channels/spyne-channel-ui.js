@@ -325,12 +325,16 @@ export class SpyneChannelUI extends Channel {
       return obj
     }
 
+    obs.payload = domStringMapToObject(obs?.srcElement?.el?.dataset) ?? obs.payload
+
     SpyneChannelUI.checkForEventMethods(obs)
     obs.action = this.getActionState(obs)
     const action = obs.action// this.getActionState(obs);
-    const { srcElement } = obs
+    // const { srcElement } = obs
+    const { payload, srcElement } = obs
+
     const event = obs.event
-    const payload = domStringMapToObject(srcElement?.el?.dataset) ?? obs.payload
+    // const payload = domStringMapToObject(srcElement?.el?.dataset) ?? obs.payload
     this.sendChannelPayload(action, payload, srcElement, event)
   }
 }

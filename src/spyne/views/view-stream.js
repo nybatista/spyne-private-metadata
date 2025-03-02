@@ -972,6 +972,8 @@ export class ViewStream {
     }
     if (Array.isArray(this?.props?.channels)) {
       this?.props?.channels?.forEach(addChannel)
+    } else if (Array.isArray(this?.props?.channel)) {
+      console.warn('props.channel is not a ViewStream property. Do you mean props.channels?')
     }
   }
 
