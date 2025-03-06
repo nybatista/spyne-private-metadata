@@ -1,7 +1,6 @@
 // import { SpyneUtilsChannelRoute } from './spyne-utils-channel-route'
 import { SpynePluginsMethods } from './spyne-plugins-methods.js'
 import { deepMerge } from './deep-merge.js'
-import { path } from 'ramda'
 
 let _config
 let _channels

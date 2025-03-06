@@ -353,7 +353,7 @@ export class SpyneChannelRoute extends Channel {
   onViewStreamInfo(pl) {
     const action = this.channelActions.CHANNEL_ROUTE_CHANGE_EVENT
 
-    function domStringMapToObject(domStringMap) {
+/*     function domStringMapToObject(domStringMap) {
       const obj = {}
       for (const key in domStringMap) {
         // Check if it’s a direct property (though dataset rarely has anything on the prototype):
@@ -362,9 +362,9 @@ export class SpyneChannelRoute extends Channel {
         }
       }
       return obj
-    }
+    } */
 
-   // pl.payload = domStringMapToObject(pl?.srcElement?.el?.dataset) ?? pl.payload
+    // pl.payload = domStringMapToObject(pl?.srcElement?.el?.dataset) ?? pl.payload
 
     console.log('ROUTE CHANNEL VSI ', { pl })
 
