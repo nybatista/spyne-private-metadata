@@ -6,13 +6,13 @@
   "engines": {
     "node": ">=14"
   },
-  "main": "./src/spyne/spyne.js",
-  "module": "./src/spyne/spyne.js",
+  "main": "./lib/spyne.esm.js",
+  "module": "./lib/spyne.esm.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./src/spyne/spyne.js",
-      "require": "./src/spyne/spyne.js"
+      "import": "./lib/spyne.esm.js",
+      "require": "./lib/spyne.esm.js"
     },
     "./lib/*": "./lib/*.js"
   },

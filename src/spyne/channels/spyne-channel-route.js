@@ -364,7 +364,7 @@ export class SpyneChannelRoute extends Channel {
       return obj
     }
 
-    pl.payload = domStringMapToObject(pl?.srcElement?.el?.dataset) ?? pl.payload
+   // pl.payload = domStringMapToObject(pl?.srcElement?.el?.dataset) ?? pl.payload
 
     console.log('ROUTE CHANNEL VSI ', { pl })
 

@@ -16,6 +16,11 @@ let _IMG_PATH
 const _doNotTrackChannelsArr = []
 const _proxiesMap = new Map()
 
+function random6Chars() {
+  // For simplicity: slice(2, 8) gets 6 random chars from the substring
+  return Math.random().toString(36).slice(2, 8);
+}
+
 const _spynePluginMethods = new SpynePluginsMethods()
 
 class SpyneAppPropertiesClass {
@@ -99,13 +104,30 @@ class SpyneAppPropertiesClass {
     _channelsMap = { getStream, testStream, getProxySubject }
   }
 
-  setProp(key, val) {
-    _config.tmp[key] = val
+  setProp(key, val, isTemp = false) {
+    if (isTemp) {
+      _config.ephemeralProps[key] = val;
+    } else {
+      _config.tmpProps[key] = val;
+    }
+    return val;
   }
 
   getProp(key) {
-    return path(['tmp', key], _config)
+    if (_config.ephemeralProps.hasOwnProperty(key)) {
+      const tempVal = _config.ephemeralProps[key];
+      delete _config.ephemeralProps[key];
+      return tempVal;
+    }
+    return _config.tmpProps[key];
   }
+
+  createTempProp(value) {
+    const key = random6Chars();
+    this.setProp(key, value, true); // isTemp = true
+    return key;
+  }
+
 
   setChannelConfig(channelName, config) {
     _config.channels[channelName] = config

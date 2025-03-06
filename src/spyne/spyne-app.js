@@ -87,6 +87,8 @@ class SpyneApplication {
 
       },
       tmp: {},
+      ephemeralProps: {},
+      tmpProps: {},
       channels: {
         WINDOW: {
           mediaQueries: {
