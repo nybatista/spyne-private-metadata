@@ -184,6 +184,9 @@ export class SpyneChannelRoute extends Channel {
     const routeConfig = this.getRouteConfig()
     const action = 'CHANNEL_ROUTE_CONFIG_UPDATED_EVENT'
 
+    // reverse because routeDatasetsArr turns out that way
+    routeConfig.navLinks = [...routeConfig?.routeDatasetsArr]
+
     this.routeConfigJson = routeConfig
     this.bindStaticMethodsWithConfigData()
 
@@ -351,9 +354,9 @@ export class SpyneChannelRoute extends Channel {
   }
 
   onViewStreamInfo(pl) {
-    const action = this.channelActions.CHANNEL_ROUTE_CHANGE_EVENT
+    const action = pl.action ?? this.channelActions.CHANNEL_ROUTE_CHANGE_EVENT
 
-/*     function domStringMapToObject(domStringMap) {
+    function domStringMapToObject(domStringMap) {
       const obj = {}
       for (const key in domStringMap) {
         // Check if it’s a direct property (though dataset rarely has anything on the prototype):
@@ -362,11 +365,13 @@ export class SpyneChannelRoute extends Channel {
         }
       }
       return obj
-    } */
+    }
 
-    // pl.payload = domStringMapToObject(pl?.srcElement?.el?.dataset) ?? pl.payload
+    if (pl?.srcElement?.el?.dataset) {
+      pl.payload = domStringMapToObject(pl?.srcElement?.el?.dataset) ?? pl.payload
+    }
 
-    console.log('ROUTE CHANNEL VSI ', { pl })
+    // console.log('ROUTE CHANNEL VSI ', { pl })
 
     SpyneChannelRoute.checkForEventMethods(pl)
     pl = this.checkForEndRoute(pl)

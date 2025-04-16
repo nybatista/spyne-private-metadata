@@ -1,4 +1,4 @@
-// import { SpyneUtilsChannelRoute } from './spyne-utils-channel-route'
+import { SpyneUtilsChannelRoute } from './spyne-utils-channel-route.js'
 import { SpynePluginsMethods } from './spyne-plugins-methods.js'
 import { deepMerge } from './deep-merge.js'
 
@@ -106,10 +106,11 @@ class SpyneAppPropertiesClass {
   setProp(key, val, isTemp = false) {
     if (isTemp) {
       _config.ephemeralProps[key] = val;
+      return val;
     } else {
       _config.tmpProps[key] = val;
     }
-    return val;
+    return  key;
   }
 
   getProp(key) {
@@ -118,7 +119,7 @@ class SpyneAppPropertiesClass {
       delete _config.ephemeralProps[key];
       return tempVal;
     }
-    return _config.tmpProps[key];
+    return _config?.tmpProps?.[key];
   }
 
   createTempProp(value) {

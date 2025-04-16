@@ -69,22 +69,45 @@ export class Channel {
   constructor(CHANNEL_NAME, props = {}) {
     this.addRegisteredActions.bind(this)
     this.createChannelActionsObj(CHANNEL_NAME, props.extendedActionsArr)
+
+    // Basic props setup
     props.name = CHANNEL_NAME
     props.defaultActions = props.data !== undefined ? [`${props.name}_EVENT`] : []
     this.props = props
+
     this.props.isRegistered = false
-    this.props.isProxy = this.props.isProxy === undefined ? false : this.props.isProxy
+    this.props.isProxy =
+      this.props.isProxy === undefined ? false : this.props.isProxy
+
+    // Determine a default from presence of props.data
     const defaultCachedPayloadBool = this.props.data !== undefined
-    this.props.sendCachedPayload = this.props.sendCachedPayload === undefined ? defaultCachedPayloadBool : this.props.sendCachedPayload
+
+    // If props.replay is defined, override sendCachedPayload with it.
+    // Otherwise, use the existing sendCachedPayload property or default.
+    if (typeof this.props.replay !== 'undefined') {
+      this.props.sendCachedPayload = this.props.replay
+    } else {
+      this.props.sendCachedPayload =
+        this.props.sendCachedPayload === undefined
+          ? defaultCachedPayloadBool
+          : this.props.sendCachedPayload
+    }
+
     this.sendPayloadToRouteChannel = new RouteChannelUpdater(this)
     this.createChannelActionMethods()
+
+    // Set up streams
     this.streamsController = SpyneAppProperties.channelsMap
     const observer$ = this.getMainObserver()
     this.checkForPersistentDataMode = Channel.checkForPersistentDataMode.bind(this)
     this.observer$ = this.props.observer = observer$
+
+    // Subscribe to DISPATCHER
     const dispatcherStream$ = this.streamsController.getStream('DISPATCHER')
     const payloadPredByChannelName = propEq(props.name, 'name')
-    dispatcherStream$.pipe(filter(payloadPredByChannelName)).subscribe((val) => this.onReceivedObservable(val))
+    dispatcherStream$
+      .pipe(filter(payloadPredByChannelName))
+      .subscribe((val) => this.onReceivedObservable(val))
   }
 
   getMainObserver() {
