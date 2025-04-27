@@ -99,9 +99,9 @@ export class ViewStream {
     this.loadAllMethods()
     this.props.action = 'LOADED'
     this.sink$ = new Subject()
+    this.props.elIsAlreadyRenderedBool = this.elAlreadyExistsFn(this.props)
     const ViewClass = this.props.viewClass
-    this.view = new ViewClass(this.sink$, {}, this.props.vsid,
-      this.props.id)// new this.props.viewClass(this.sink$);
+    this.view = new ViewClass(this.sink$, { el:this.props.el }, this.props.vsid, this.props.id)// new this.props.viewClass(this.sink$);
     this.sourceStreams = this.view.sourceStreams
     this._rawSource$ = this.view.getSourceStream()
     this._rawSource$.viewName = this.props.name
@@ -216,12 +216,14 @@ export class ViewStream {
 
   //  =====================================================================
 
-  checkIfElementAlreadyExists() {
+  elAlreadyExistsFn(props) {
     const elIsDomElement = compose(lte(0), defaultTo(-1), prop('nodeType'))
     const elIsRendered = el => document.body.contains(el)
-    const elIsReadyBool = propSatisfies(
-      allPass([elIsRendered, elIsDomElement]), 'el')
-    if (elIsReadyBool(this.props)) {
+    return propSatisfies(allPass([elIsRendered, elIsDomElement]), 'el')(props)
+  }
+
+  checkIfElementAlreadyExists() {
+    if (this.props.elIsAlreadyRenderedBool === true) {
       this.updatePropsToMatchEl()
       this.postRender()
     } else if (this.props.el === null) {
