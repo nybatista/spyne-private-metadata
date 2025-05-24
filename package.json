@@ -1,6 +1,6 @@
 {
   "name": "spyne",
-  "version": "0.20.7",
+  "version": "0.20.8",
   "description": "Reactive Real-DOM Framework for Advanced Javascript applications",
   "sideEffects": true,
   "engines": {
@@ -48,7 +48,7 @@
     "JavaScript Framework",
     "Single-Page-Application Framework"
   ],
-  "author": "Frank Batista",
+  "author": "Frank Batista <frank@spynejs.com> (Relevant Context, Inc.)",
   "license": "UNLICENSED",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.2",
@@ -87,6 +87,7 @@
   "config": {},
   "dependencies": {
     "dompurify": "^3.1.6",
+    "fs": "^0.0.1-security",
     "ramda": "^0.30.1",
     "rxjs": "^7.8.1"
   }
