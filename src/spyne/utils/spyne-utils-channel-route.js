@@ -90,27 +90,22 @@ export class SpyneUtilsChannelRoute {
     return values(fromPairs(go(obj)))
   }
 
-
-
-
   static addRouteDatasets(channelRouteObj) {
     // channelRouteObj.type='query';
-
 
     function removeUndefined(arr) {
       return arr.map(obj => {
         for (const key in obj) {
           if (key === undefined || key === 'undefined' || obj[key] === undefined) {
-            delete obj[key];
+            delete obj[key]
           } else if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
             // recurse if nested object
-            obj[key] = removeUndefined([obj[key]])[0];
+            obj[key] = removeUndefined([obj[key]])[0]
           }
         }
-        return obj;
-      });
+        return obj
+      })
     }
-
 
     const { type, isHash } = channelRouteObj
 

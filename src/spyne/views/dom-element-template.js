@@ -143,6 +143,7 @@ export class DomElementTemplate {
     // SpyneJS Enterprise Code Start
     if (this.isProxyData === true) {
       // data['cmsId'] = data.__cms__dataId;
+      console.log('PROXY IS ', data.__cms__rootData)
       this.template = DomElementTemplate.formatTemplateForProxyData(this.template)
     }
     // SpyneJS Enterprise Code End
@@ -197,11 +198,13 @@ export class DomElementTemplate {
       const isArrPrimitive = DomElementTemplate.isPrimitiveTag(str)
 
       const getKeyAndDataId = (s) => {
-        const re = /({{)([\w_]+(\.))*?(\w+)(}})/gm
+        const re = /({{)([\w_]+(\.))*?(\w+)(}})/gm // this is old, will be deprecated.
+        const reNestedData = /^\{\{([^}]+?)\.[^.}]+}}$/gm
+
         let dataId = '__cms__dataId'
         const key = isArrPrimitive ? '{{loopIndex}}' : String(s).replace(re, '$4')
         if (/(\w\.)/.test(s)) {
-          dataId = String(s).replace(re, '$2') + dataId
+          dataId = String(s).replace(reNestedData, '$1.') + dataId
         }
         return { key, dataId }
       }
