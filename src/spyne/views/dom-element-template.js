@@ -140,13 +140,16 @@ export class DomElementTemplate {
     this.isProxyData = data.__cms__isProxy === true
     this.testMode = opts?.testMode
 
-    // SpyneJS Enterprise Code Start
+    /*
     if (this.isProxyData === true) {
-      // data['cmsId'] = data.__cms__dataId;
       console.log('PROXY IS ', data.__cms__rootData)
       this.template = DomElementTemplate.formatTemplateForProxyData(this.template)
     }
-    // SpyneJS Enterprise Code End
+*/
+
+    if (SpyneAppProperties.enableCMSProxies && this.isProxyData === true) {
+      this.template = SpyneAppProperties.formatTemplateForProxyData(this.template)
+    }
 
     const checkForArrayData = () => {
       if (is(Array, data) === true) {
@@ -187,7 +190,6 @@ export class DomElementTemplate {
   }
 
   // SpyneJS Enterprise Code Start
-  // ADD PARAMS TO TRACK PROXY DATA
   static formatTemplateForProxyData(tmpl) {
     const reLines2 = /(({{(?!loopNum|loopIndex))(.*?)(}}))/gm
     const reStr = '(?<=>)(.*?)(({{)(.*)(}}))'
