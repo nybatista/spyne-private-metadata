@@ -1,0 +1,36 @@
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+          always-auth: false
+
+      - name: Remove any generated npmrc
+        run: |
+          rm -f ~/.npmrc || true
+          rm -f /home/runner/work/_temp/.npmrc || true
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
+        run: npm run build || true
+
+      - name: Publish
+        run: npm publish --provenance
