@@ -52,7 +52,6 @@ export class DomElementTemplate {
     return /({{\.\*?}})/.test(str)
   }
 
-
   // SpyneJS Enterprise Code Start
   static formatTemplateForProxyData(tmpl) {
     if (typeof tmpl !== 'string' || tmpl.indexOf('{{') === -1) {
@@ -152,8 +151,6 @@ export class DomElementTemplate {
 
     return /(\.)/gm.test(String(param)) ? String(param).split('.').reduce(dataReducer, data) : data[param] ?? ''
   }
-
-
 
   // --------------------------------------------------
   // SpyneJS Enterprise Code Start
@@ -265,7 +262,7 @@ export class DomElementTemplate {
   // --------------------------------------------------
   // TEMPLATE + DATA RESOLUTION (UNCHANGED)
   // --------------------------------------------------
-  static getNestedDataReducer(data = {}, param = '') {
+  static getNestedDataReducerDupe(data = {}, param = '') {
     const dataReducer = (nestedData, str) => {
       if (nestedData[str]) {
         return nestedData[str]
