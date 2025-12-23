@@ -2,154 +2,17 @@ import { includes, __, ifElse, path, prop, reject, is, isNil, isEmpty } from 'ra
 import sanitizeHTML from '../utils/sanitize-html.js'
 import { SpyneAppProperties } from '../utils/spyne-app-properties.js'
 
-/**
- * @module DomElTemplate
- * @type util
- *
- * @constructor
- * @param {String|HTMLElement} template
- * @param {Object} data
- *
- * @desc DomElement uses this class when rendering templates.
- *
- * @example
- * TITLE["<h4>Accessing properties using a double bracket {{&nbsp;&nbsp;&nbsp;}} expression</h4>"]
- * const data = {{name:"World}};
- * const template = `<p>Hello {{name}}!</p>`;
- *
- * this.props.el.appendChild(new
- * DocElTemplate(template,data).renderDocFrag());
- *
- * // Outputs
- * <p>Hello World!</p>
- *
- *
- *
- * @example
- * TITLE["<h4>Looping through an an array of objects using loop {{#loopProperty}} {{property}} {{/loopProperty}} expression</h4>"]
- * const data = {animals: [
- *   {animal: 'cat', sound: 'meow'},
- *   {animal: 'dog', sound: 'woof'},
- *   {animal: 'bird', sound: tweet'}
- * ]};
- *
- * const template = `
- * <ul>
- * {{#animals}}
- *   <li>The {{animal}} says '{{sound}}'.</li>
- * {{/animals}}
- * </ul>`;
- *
- * this.props.el.appendChild(new
- * DocElTemplate(template,data).renderDocFrag());
- *
- * // Outputs
- * <ul>
- *    <li>The cat says 'meow'.</li>
- *    <li>The dog says 'woof'.</li>
- *    <li>The bird says 'tweet'.</li>
- * </ul>
- *
- *
- *
- * @example
- * TITLE["<h4>Looping through list items in an array of using {{#arrName}} &nbsp;&nbsp;{{.}}&nbsp;&nbsp; {{/arrName}} expression</h4>"]
- * const data =  {name: 'Jane', pets: ['Milo','Luna','Kiki']};
- * const template = "<article>
- *                  <h3>Welcome, {{name}}, your pets are:</h3>
- *                  <ul>{{#pets}}
- *                    <li>{{.}}, </li>
- *                    {{/pets}}
- *                 </ul></article>";
- *
- * this.props.el.appendChild(new
- * DocElTemplate(template,data).renderDocFrag());
- *
- * // Outputs
- * <article>
- *   <h3>Welcome Jane, your pets are:</h3>
- *    <ul>
- *       <li>Milo</li>
- *       <li>Luna</li>
- *       <li>Kiki</li>
- *    </ul>
- * </article>
- *
- *
- * @example
- * TITLE["<h4>Looping through an array with no property name using {{#}} &nbsp;&nbsp;{{ }}&nbsp;&nbsp; {{/}} expression</h4>"]
- * const data = [
- *      {item: 'Cookie', calories: 142},
- *      {item: 'Apple',  calories: 95},
- *      {item: 'Cheese', calories: 113}];
- *
- * const template = `
- * <article>
- * <h3>Snacks:</h3>
- *   <ul>
- *      {{#}}
- *      <li>{{item}}, calories: {{calories}}</li>
- *      {{/}}
- *   </ul>
- * </article>
- * `;
- *
- * this.props.el.appendChild(new
- * DocElTemplate(template,data).renderDocFrag());
- *
- * // Outputs
- * <article>
- *   <h3>Snacks</h3>
- *    <ul>
- *       <li>Cookie, calories: 142</li>
- *       <li>Apple, calories: 95</li>
- *       <li>Cheese, calories: 113</li>
- *    </ul>
- * </article>
- *
- *
- * @example
- * TITLE["<h4>Looping through an array with no property name using {{#}} &nbsp;&nbsp;{{ . }}&nbsp;&nbsp; {{/}} expression</h4>"]
- * const data = ['Tyrion', 'Arya', 'Jon Snow', 'Sansa'];
- * const template = `
- * <h3>Main GoT Characters</h3>
- * <ul>
- *  {{#}}
- *   <li>{{.}}</li>
- *  {{/}}
- *  </ul>';
- *
- * this.props.el.appendChild(new
- * DocElTemplate(template,data).renderDocFrag());
- *
- * //Outputs
- * <h3>Main GoT Characters</h3>
- * <ul>
- *   <li>Tyrion</li>
- *   <li>Arya</li>
- *   <li>Jon Snow</li>
- *   <li>Sansa</li>
- * </ul>
- *
- *
- */
-
 export class DomElementTemplate {
   constructor(template, data = {}, opts = {}) {
     this.template = this.formatTemplate(template)
     this.isProxyData = data.__cms__isProxy === true
     this.testMode = opts?.testMode
 
-    /*
+    // SpyneJS Enterprise Code Start
     if (this.isProxyData === true) {
-      console.log('PROXY IS ', data.__cms__rootData)
       this.template = DomElementTemplate.formatTemplateForProxyData(this.template)
     }
-*/
-
-    if (SpyneAppProperties.enableCMSProxies && this.isProxyData === true) {
-      this.template = SpyneAppProperties.formatTemplateForProxyData(this.template)
-    }
+    // SpyneJS Enterprise Code End
 
     const checkForArrayData = () => {
       if (is(Array, data) === true) {
@@ -189,25 +52,63 @@ export class DomElementTemplate {
     return /({{\.\*?}})/.test(str)
   }
 
+
   // SpyneJS Enterprise Code Start
   static formatTemplateForProxyData(tmpl) {
+    if (typeof tmpl !== 'string' || tmpl.indexOf('{{') === -1) {
+      return tmpl
+    }
+
+    // -----------------------------
+    // LOCAL HELPERS (ENCAPSULATED)
+    // -----------------------------
+    const isPrimitiveTag = str => /({{\.\*?}})/.test(str)
+
+    // -----------------------------
+    // 1. MASK ATTRIBUTE PLACEHOLDERS
+    // -----------------------------
+    const ATTR_TOKEN = '__CMS_ATTR_TOKEN__'
+    const attrStore = []
+
+    const maskAttributeBindings = str =>
+      str.replace(
+        /(<[^>]+?)(\s[\w-]+=["']?)({{[^}]+}})(["'][^>]*>)/g,
+        (m, p1, p2, p3, p4) => {
+          const key = `${ATTR_TOKEN}_${attrStore.length}`
+          attrStore.push(p3)
+          return `${p1}${p2}${key}${p4}`
+        }
+      )
+
+    const unmaskAttributeBindings = str =>
+      attrStore.reduce(
+        (acc, val, i) => acc.replace(`${ATTR_TOKEN}_${i}`, val),
+        str
+      )
+
+    const maskedTemplate = maskAttributeBindings(tmpl)
+
+    // -----------------------------
+    // 2. ORIGINAL REGEX LOGIC
+    // -----------------------------
     const reLines2 = /(({{(?!loopNum|loopIndex))(.*?)(}}))/gm
-    const reStr = '(?<=>)(.*?)(({{)(.*)(}}))'
+    const reStr = '(?<=>)(.*?)(({{)(.*?)(}}))'
+    const reLines1 = new RegExp(reStr, 'gm')
 
-    const reLines1 =  new RegExp(reStr, 'gm')
+    const formatCmsParam = str => {
+      const isArrPrimitive = isPrimitiveTag(str)
 
-    const formatCmsParam = (str) => {
-      const isArrPrimitive = DomElementTemplate.isPrimitiveTag(str)
-
-      const getKeyAndDataId = (s) => {
-        const re = /({{)([\w_]+(\.))*?(\w+)(}})/gm // this is old, will be deprecated.
+      const getKeyAndDataId = s => {
+        const re = /({{)([\w_]+(\.))*?(\w+)(}})/gm
         const reNestedData = /^\{\{([^}]+?)\.[^.}]+}}$/gm
 
         let dataId = '__cms__dataId'
         const key = isArrPrimitive ? '{{loopIndex}}' : String(s).replace(re, '$4')
+
         if (/(\w\.)/.test(s)) {
           dataId = String(s).replace(reNestedData, '$1.') + dataId
         }
+
         return { key, dataId }
       }
 
@@ -215,31 +116,155 @@ export class DomElementTemplate {
 
       let prefix = `<spyne-cms-item data-cms-id="{{${dataId}}}" data-cms-key="${key}"`
 
-      // IF AN ARRAY PRIMITIVE CHECK FOR ORIGINAL ARRAY POSITION
       if (isArrPrimitive) {
         prefix += ' data-cms-orig-key="{{origKey}}"'
       }
 
-      // CREATE PROXY TAG
       const suffix = '</spyne-cms-item>'
-      const param =  isArrPrimitive ? '{{spyneLoopKey}}' : str
-      return `${prefix}><spyne-cms-item-hitbox></spyne-cms-item-hitbox><spyne-cms-item-text>${param}</spyne-cms-item-text>${suffix}`
+      const param = isArrPrimitive ? '{{spyneLoopKey}}' : str
+
+      return `${prefix}>
+      <spyne-cms-item-hitbox></spyne-cms-item-hitbox>
+      <spyne-cms-item-text>${param}</spyne-cms-item-text>
+    ${suffix}`
     }
 
-    const reSwapTags = (str, m1, m2, m3) => {
-      return formatCmsParam(str)
-    }
+    const processed = String(maskedTemplate).replace(
+      reLines1,
+      (str, m1, m2) => `${m1}${String(m2).replace(reLines2, formatCmsParam)}`
+    )
 
-    const reMethod = (str, m1, m2, m3, m4) => {
-      const m2Updated = String(m2).replace(reLines2, reSwapTags)
-      return `${m1}${m2Updated}`
-    }
-
-    return String(tmpl).replace(reLines1, reMethod)
+    // -----------------------------
+    // 3. UNMASK ATTRIBUTE PLACEHOLDERS
+    // -----------------------------
+    return unmaskAttributeBindings(processed)
   }
   // SpyneJS Enterprise Code End
 
   // FIND CORRECT NESTED DATA
+  static getNestedDataReducer(data = {}, param = '') {
+    const dataReducer = (nestedData, str) => {
+      if (nestedData[str]) {
+        return nestedData[str]
+      }
+      return typeof nestedData === 'string' ? nestedData : ''
+    }
+
+    return /(\.)/gm.test(String(param)) ? String(param).split('.').reduce(dataReducer, data) : data[param] ?? ''
+  }
+
+
+
+  // --------------------------------------------------
+  // SpyneJS Enterprise Code Start
+  // TWO-PASS TOKENIZED CMS INSTRUMENTATION
+  // --------------------------------------------------
+  static formatTemplateForProxyDataOld(tmpl) {
+    if (typeof tmpl !== 'string' || tmpl.indexOf('{{') === -1) {
+      return tmpl
+    }
+
+    // -----------------------------
+    // PASS 1: TOKENIZE
+    // -----------------------------
+    const tokens = []
+    let buffer = ''
+    let insideTag = false
+
+    const flush = () => {
+      if (buffer) {
+        tokens.push({
+          type: insideTag ? 'tag' : 'text',
+          value: buffer
+        })
+        buffer = ''
+      }
+    }
+
+    for (let i = 0; i < tmpl.length; i++) {
+      const ch = tmpl[i]
+
+      if (ch === '<') {
+        flush()
+        insideTag = true
+        buffer += ch
+        continue
+      }
+
+      if (ch === '>') {
+        buffer += ch
+        flush()
+        insideTag = false
+        continue
+      }
+
+      buffer += ch
+    }
+
+    flush()
+
+    // -----------------------------
+    // PASS 2: CMS INSTRUMENTATION
+    // -----------------------------
+    const isPrimitiveTag = str => /({{\.\*?}})/.test(str)
+
+    const formatCmsParam = str => {
+      const isArrPrimitive = isPrimitiveTag(str)
+
+      const re = /({{)([\w_]+(\.))*?(\w+)(}})/gm
+      const reNestedData = /^\{\{([^}]+?)\.[^.}]+}}$/gm
+
+      let dataId = '__cms__dataId'
+      const key = isArrPrimitive
+        ? '{{loopIndex}}'
+        : String(str).replace(re, '$4')
+
+      if (/(\w\.)/.test(str)) {
+        dataId = String(str).replace(reNestedData, '$1.') + dataId
+      }
+
+      let prefix = `<spyne-cms-item data-cms-id="{{${dataId}}}" data-cms-key="${key}"`
+
+      if (isArrPrimitive) {
+        prefix += ' data-cms-orig-key="{{origKey}}"'
+      }
+
+      const param = isArrPrimitive ? '{{spyneLoopKey}}' : str
+
+      return `${prefix}>
+        <spyne-cms-item-hitbox></spyne-cms-item-hitbox>
+        <spyne-cms-item-text>${param}</spyne-cms-item-text>
+      </spyne-cms-item>`
+    }
+
+    const escapeReplaceString = str =>
+      str.replace(/\$/g, '$$$$')
+
+    return tokens
+      .map(token => {
+        // TEXT NODES → wrap placeholders
+        if (token.type === 'text') {
+          return token.value.replace(
+            /({{(?!loopNum|loopIndex).*?}})/gm,
+            match => escapeReplaceString(formatCmsParam(match))
+          )
+        }
+
+        // TAG NODES → annotate attribute placeholders
+        return token.value
+        /*         return token.value.replace(
+                  /(\s)([\w-:]+)\s*=\s*(["']){{\s*([\w.$-]+)\s*}}\3/g,
+                  (m, ws, attr, quote, key) =>
+                    `${ws}${attr}=${quote}{{${key}}}${quote} data-cms-attr-${attr}="${key}"`
+                ) */
+      })
+      .join('')
+  }
+  // SpyneJS Enterprise Code End
+
+  // --------------------------------------------------
+  // TEMPLATE + DATA RESOLUTION (UNCHANGED)
+  // --------------------------------------------------
   static getNestedDataReducer(data = {}, param = '') {
     const dataReducer = (nestedData, str) => {
       if (nestedData[str]) {
@@ -287,7 +312,6 @@ export class DomElementTemplate {
 
   renderDocFrag() {
     let html = DomElementTemplate.replaceImgPath(this.finalArr.join(''))
-    // html = sanitizeHTML(this.finalArr.join(''))
     if (this.testMode !== true) {
       html = sanitizeHTML(html)
     }
@@ -336,24 +360,15 @@ export class DomElementTemplate {
   }
 
   parseTheTmplLoop(str, p1, p2, p3) {
-    // const dotConverter = str => `${str.replace(/(\.)/g, '][')}`
     const reDot = /(\.)/gm
     const subStr = p3
-
-    /*     const dataReducer = (acc, str) => {
-      acc = acc[str]
-      return acc
-    } */
-
     let elData = DomElementTemplate.getNestedDataReducer(this.templateData, p2)
 
     const arrayStringToObjAdapter = (d, str, i) => {
-      // IF {{.}} RUN parseString
       if (DomElementTemplate.isPrimitiveTag(str)) {
         return parseString(d, str, i)
       }
 
-      // CREATE DATA OBJ -- CHECK TO ADD PROXY VALUES
       const createDataObj = () => {
         const spyneLoopKey = d
         const loopIndex = i
