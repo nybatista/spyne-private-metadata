@@ -52,7 +52,7 @@ export class DomElementTemplate {
     return /({{\.\*?}})/.test(str)
   }
 
-// SpyneJS Enterprise Code Start
+  // SpyneJS Enterprise Code Start
   static formatTemplateForProxyData(tmpl) {
     if (typeof tmpl !== 'string' || tmpl.indexOf('{{') === -1) {
       return tmpl
@@ -66,9 +66,15 @@ export class DomElementTemplate {
     // Explicit attribute binding convention: {{attr*}}
     const isAttrBinding = str => /\{\{\s*attr[A-Z]/.test(str)
 
+    // Skip loop/control bindings entirely (never CMS-wrap these)
+    const isControlBinding = str => /^\{\{\s*(#|\/|else\b)/.test(String(str).trim())
+
+    // Safety: if something with "<" or ">" ever makes it here, do NOT wrap it.
+    // This prevents accidental "data-cms-key" corruption like "<li class=..."
+    const containsMarkup = str => /[<>]/.test(String(str))
+
     // -----------------------------
     // 1. MASK ATTRIBUTE PLACEHOLDERS
-    //    (INCLUDING attr* CONVENTION)
     // -----------------------------
     const ATTR_TOKEN = '__CMS_ATTR_TOKEN__'
     const attrStore = []
@@ -92,16 +98,25 @@ export class DomElementTemplate {
     const maskedTemplate = maskAttributeBindings(tmpl)
 
     // -----------------------------
-    // 2. ORIGINAL REGEX LOGIC
-    //    (SKIP attr* BINDINGS)
+    // 2. ORIGINAL CMS REGEX LOGIC
     // -----------------------------
     const reLines2 = /(({{(?!loopNum|loopIndex))(.*?)(}}))/gm
     const reStr = '(?<=>)(.*?)(({{)(.*?)(}}))'
     const reLines1 = new RegExp(reStr, 'gm')
 
     const formatCmsParam = str => {
-      // NEW: attr* placeholders are never CMS-wrapped
+      // NEW: never CMS-wrap attribute placeholders
       if (isAttrBinding(str)) {
+        return str
+      }
+
+      // NEW: never CMS-wrap loop/control tags
+      if (isControlBinding(str)) {
+        return str
+      }
+
+      // NEW: safety guard (prevents "<li ..." ever becoming a cms-key)
+      if (containsMarkup(str)) {
         return str
       }
 

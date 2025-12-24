@@ -37,5 +37,46 @@ const isPublic = process.env.IS_PUBLIC === true;
       expect(output).to.equal(input);
       expect(output).to.not.include('<spyne-cms-item');
     });
+
+    it('should allow prefixed attr* placeholders inside attributes without CMS wrapping', () => {
+      const input = '<img src="{{attrImgSrc}}" alt="{{attrImgAlt}}">';
+      const output = DomElementTemplate.formatTemplateForProxyData(input);
+
+      // attr* placeholders should remain intact
+      expect(output).to.include('{{attrImgSrc}}');
+      expect(output).to.include('{{attrImgAlt}}');
+
+      // no CMS proxy tags should be injected
+      expect(output).to.not.include('<spyne-cms-item');
+    });
+
+    it('should not wrap loop root elements or corrupt list structure', () => {
+      const input = `
+        <ul>
+          {{#items}}
+            <li><span>{{title}}</span></li>
+          {{/items}}
+        </ul>
+      `;
+
+      const data = {
+        __cms__isProxy: true,
+        items: [
+          { title: 'A' },
+          { title: 'B' },
+          { title: 'C' }
+        ]
+      };
+
+      const tmpl = new DomElementTemplate(input, data);
+      const output = tmpl.renderToString();
+
+      // list structure must be preserved
+      expect(output.match(/<li>/g).length).to.equal(3);
+
+      // CMS proxy should exist only around text nodes
+      expect(output).to.include('<spyne-cms-item');
+      expect(output).to.not.match(/data-cms-key="&lt;li/);
+    });
   });
 });
