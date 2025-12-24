@@ -1,18 +1,18 @@
 {
   "name": "spyne",
-  "version": "0.20.15",
-  "description": "Reactive Real-DOM Framework for Advanced Javascript applications",
+  "version": "0.21.0",
+  "description": "Frontend framework built on View–Behavior–Logic (VBL) for clear structure, explicit behavior, and code that humans and AI can reason about",
   "sideEffects": true,
   "engines": {
     "node": ">=14"
   },
-  "main": "./lib/spyne.esm.js",
-  "module": "./lib/spyne.esm.js",
+  "main": "./src/spyne/spyne.js",
+  "module": "./src/spyne/spyne.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./lib/spyne.esm.js",
-      "require": "./lib/spyne.esm.js"
+      "import": "./src/spyne/spyne.js",
+      "require": "./src/spyne/spyne.js"
     },
     "./lib/*": "./lib/*.js"
   },
@@ -41,12 +41,17 @@
     "url": "https://github.com/spynejs/spyne.git"
   },
   "keywords": [
-    "reactive",
-    "real-dom",
-    "framework",
-    "javascript",
-    "JavaScript Framework",
-    "Single-Page-Application Framework"
+    "view behavior logic",
+    "VBL",
+    "frontend architecture",
+    "structured ui",
+    "behavior-driven ui",
+    "event-driven ui",
+    "ai collaborative development",
+    "ai-readable architecture",
+    "reasoned architecture",
+    "javascript framework",
+    "advanced frontend"
   ],
   "author": "Frank Batista <frank@spynejs.com> (Relevant Context, Inc.)",
   "license": "UNLICENSED",
