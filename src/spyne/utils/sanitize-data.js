@@ -15,7 +15,7 @@ const SAFE_FOR_RICH_TEXT = {
     'blockquote', 'pre', 'code', 'span', 'div', 'section', 'article', 'aside',
     'header', 'footer', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     'table', 'thead', 'tbody', 'tr', 'td', 'th', 'img', 'figure', 'figcaption',
-    'video', 'source', 'iframe', 'input', 'button', 'link'
+    'video', 'source', 'iframe', 'input', 'button', 'label', 'link'
   ],
   ADD_TAGS: ['iframe', 'input', 'button', 'link'],
   ALLOWED_ATTR: [

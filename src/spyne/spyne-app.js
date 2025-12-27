@@ -6,7 +6,7 @@ import { sanitizeHTMLConfigure } from './utils/sanitize-html.js'
 import { sanitizeDataConfigure } from './utils/sanitize-data.js'
 
 const _channels = new ChannelsMap()
-const version = '0.21.1'
+const version = '0.21.2'
 
 class SpyneApplication {
   /**
@@ -32,8 +32,6 @@ class SpyneApplication {
 
   constructor() {
     this.version = version
-
-    // console.log('spyne app created')
   }
 
   get channels() {
@@ -43,7 +41,7 @@ class SpyneApplication {
   init(config = {}, testMode = false) {
     // this.channels = new ChannelsMap();
     /*!
-     * Spyne 0.21.1
+     * Spyne 0.21.2
      * https://spynejs.org
      *
      * @license
@@ -58,9 +56,6 @@ class SpyneApplication {
      * This notice may not be removed or altered from any distribution.
      */
     /* eslint-disable */
-
-
-  console.log("INIT FROM SOURCE 0.21.0")
 
     if(SpyneAppProperties.initialized === true){
       if (testMode){

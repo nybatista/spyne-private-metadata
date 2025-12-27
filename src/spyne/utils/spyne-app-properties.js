@@ -277,8 +277,9 @@ class SpyneAppPropertiesClass {
   }
 
   setCMSProxyMethod(fn){
-    this.formatTemplateForProxyData = fn;
     this.enableCMSProxies = true;
+    this.formatTemplateForProxyData = fn;
+
   }
 
   tempGetChannelsInstance() {

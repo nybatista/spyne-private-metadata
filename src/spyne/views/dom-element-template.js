@@ -8,11 +8,13 @@ export class DomElementTemplate {
     this.isProxyData = data.__cms__isProxy === true
     this.testMode = opts?.testMode
 
-    // SpyneJS Enterprise Code Start
     if (this.isProxyData === true) {
-      this.template = DomElementTemplate.formatTemplateForProxyData(this.template)
+      if (SpyneAppProperties.enableCMSProxies === true) {
+        this.template = SpyneAppProperties.formatTemplateForProxyData(this.template)
+      } else {
+        this.template = DomElementTemplate.formatTemplateForProxyData(this.template)
+      }
     }
-    // SpyneJS Enterprise Code End
 
     const checkForArrayData = () => {
       if (is(Array, data) === true) {
@@ -163,131 +165,10 @@ export class DomElementTemplate {
     // -----------------------------
     return unmaskAttributeBindings(processed)
   }
-// SpyneJS Enterprise Code End
+  // SpyneJS Enterprise Code End
 
   // FIND CORRECT NESTED DATA
   static getNestedDataReducer(data = {}, param = '') {
-    const dataReducer = (nestedData, str) => {
-      if (nestedData[str]) {
-        return nestedData[str]
-      }
-      return typeof nestedData === 'string' ? nestedData : ''
-    }
-
-    return /(\.)/gm.test(String(param)) ? String(param).split('.').reduce(dataReducer, data) : data[param] ?? ''
-  }
-
-  // --------------------------------------------------
-  // SpyneJS Enterprise Code Start
-  // TWO-PASS TOKENIZED CMS INSTRUMENTATION
-  // --------------------------------------------------
-  static formatTemplateForProxyDataOld(tmpl) {
-    if (typeof tmpl !== 'string' || tmpl.indexOf('{{') === -1) {
-      return tmpl
-    }
-
-    // -----------------------------
-    // PASS 1: TOKENIZE
-    // -----------------------------
-    const tokens = []
-    let buffer = ''
-    let insideTag = false
-
-    const flush = () => {
-      if (buffer) {
-        tokens.push({
-          type: insideTag ? 'tag' : 'text',
-          value: buffer
-        })
-        buffer = ''
-      }
-    }
-
-    for (let i = 0; i < tmpl.length; i++) {
-      const ch = tmpl[i]
-
-      if (ch === '<') {
-        flush()
-        insideTag = true
-        buffer += ch
-        continue
-      }
-
-      if (ch === '>') {
-        buffer += ch
-        flush()
-        insideTag = false
-        continue
-      }
-
-      buffer += ch
-    }
-
-    flush()
-
-    // -----------------------------
-    // PASS 2: CMS INSTRUMENTATION
-    // -----------------------------
-    const isPrimitiveTag = str => /({{\.\*?}})/.test(str)
-
-    const formatCmsParam = str => {
-      const isArrPrimitive = isPrimitiveTag(str)
-
-      const re = /({{)([\w_]+(\.))*?(\w+)(}})/gm
-      const reNestedData = /^\{\{([^}]+?)\.[^.}]+}}$/gm
-
-      let dataId = '__cms__dataId'
-      const key = isArrPrimitive
-        ? '{{loopIndex}}'
-        : String(str).replace(re, '$4')
-
-      if (/(\w\.)/.test(str)) {
-        dataId = String(str).replace(reNestedData, '$1.') + dataId
-      }
-
-      let prefix = `<spyne-cms-item data-cms-id="{{${dataId}}}" data-cms-key="${key}"`
-
-      if (isArrPrimitive) {
-        prefix += ' data-cms-orig-key="{{origKey}}"'
-      }
-
-      const param = isArrPrimitive ? '{{spyneLoopKey}}' : str
-
-      return `${prefix}>
-        <spyne-cms-item-hitbox></spyne-cms-item-hitbox>
-        <spyne-cms-item-text>${param}</spyne-cms-item-text>
-      </spyne-cms-item>`
-    }
-
-    const escapeReplaceString = str =>
-      str.replace(/\$/g, '$$$$')
-
-    return tokens
-      .map(token => {
-        // TEXT NODES → wrap placeholders
-        if (token.type === 'text') {
-          return token.value.replace(
-            /({{(?!loopNum|loopIndex).*?}})/gm,
-            match => escapeReplaceString(formatCmsParam(match))
-          )
-        }
-
-        // TAG NODES → annotate attribute placeholders
-        return token.value
-        /*         return token.value.replace(
-                  /(\s)([\w-:]+)\s*=\s*(["']){{\s*([\w.$-]+)\s*}}\3/g,
-                  (m, ws, attr, quote, key) =>
-                    `${ws}${attr}=${quote}{{${key}}}${quote} data-cms-attr-${attr}="${key}"`
-                ) */
-      })
-      .join('')
-  }
-  // SpyneJS Enterprise Code End
-
-  // --------------------------------------------------
-  // TEMPLATE + DATA RESOLUTION (UNCHANGED)
-  // --------------------------------------------------
-  static getNestedDataReducerDupe(data = {}, param = '') {
     const dataReducer = (nestedData, str) => {
       if (nestedData[str]) {
         return nestedData[str]
