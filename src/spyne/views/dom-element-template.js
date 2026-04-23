@@ -36,6 +36,20 @@ export class DomElementTemplate {
     this.isProxyData = data.__cms__isProxy === true
     this.testMode = opts?.testMode
 
+    // Normalize triple-bracket tags to double-bracket.
+    //
+    // DomElementTemplate treats {{{key}}} as an alias for {{key}} — both
+    // interpolate the value as-is. Mustache's convention of "triple-bracket
+    // means unescaped" doesn't apply here because SpyneJS handles escaping
+    // and sanitization through `sanitize-data` (keyed on SpyneApp mode)
+    // before values reach the template, not through syntax-level escaping.
+    //
+    // We accept triple-bracket syntax so that authors and AI familiar with
+    // standard Mustache don't have their templates silently break when they
+    // reach for {{{key}}} out of habit. The normalization happens once here,
+    // so the rest of the engine only ever reasons about double-bracket tags.
+    this.template = DomElementTemplate.normalizeTripleBrackets(this.template)
+
     if (this.isProxyData === true) {
       if (SpyneAppProperties.enableCMSProxies === true) {
         this.template = SpyneAppProperties.formatTemplateForProxyData(this.template)
@@ -55,6 +69,13 @@ export class DomElementTemplate {
     checkForArrayData()
 
     this.templateData = data
+
+    // Stash used by per-iteration substitution so that CMS proxy lookups
+    // for string-array items (where __cms__dataId / __cms__keyFor_* live on
+    // the PARENT array, not on the individual string elements) can find the
+    // parent object at render time. Set by parseTheTmplLoop, cleared when
+    // that loop completes.
+    this.currentOuterLoopData = null
 
     const strArr = DomElementTemplate.getStringArray(this.template)
 
@@ -80,6 +101,37 @@ export class DomElementTemplate {
 
   static isPrimitiveTag(str) {
     return /({{\.\*?}})/.test(str)
+  }
+
+  /**
+   * Normalizes triple-bracket tags to double-bracket form.
+   *
+   *   {{{key}}}       → {{key}}
+   *   {{{a.b.c}}}     → {{a.b.c}}
+   *   {{{.}}}         → {{.}}
+   *   {{{.*}}}        → {{.*}}
+   *
+   * Section markers {{#key}} and {{/key}} are already two-bracket by
+   * convention and are not affected. Tags of the wrong shape (unbalanced,
+   * four or more brackets, etc.) are left untouched — anything the main
+   * parser doesn't recognize later will render as literal text, which is
+   * the correct failure mode for a logic-less template engine.
+   *
+   * This exists because DomElementTemplate treats {{{key}}} and {{key}}
+   * as interchangeable — sanitization and escaping are config-driven
+   * through `sanitize-data`, not syntax-driven through bracket count.
+   * Normalizing at construction time means the rest of the engine (loop
+   * regexes, CMS proxy wrapping, variable substitution) only reasons
+   * about one bracket style.
+   */
+  static normalizeTripleBrackets(template) {
+    if (typeof template !== 'string' || template.indexOf('{{{') === -1) {
+      return template
+    }
+    // Match balanced triple-brackets containing anything that isn't a
+    // brace character. Keeps the captured inner content, strips the
+    // outer third brace on each side.
+    return template.replace(/\{\{\{([^{}]+?)\}\}\}/g, '{{$1}}')
   }
 
   // SpyneJS Enterprise Code Start
@@ -354,52 +406,109 @@ export class DomElementTemplate {
         innerBody = innerBody.replace(/{{[#/][\w.]+}}/g, '')
       }
 
-      let innerData = DomElementTemplate.getNestedDataReducer(parentItem, innerKey)
+      const innerData = DomElementTemplate.getNestedDataReducer(parentItem, innerKey)
 
       if (isNil(innerData) === true || isEmpty(innerData)) {
         return ''
       }
 
-      innerData = Array.isArray(innerData) ? innerData : [innerData]
+      const innerArr = Array.isArray(innerData) ? innerData : [innerData]
 
-      return innerData.map((innerItem, innerIdx) => {
+      // While processing an inner loop, the "outer" data for CMS string-item
+      // lookups is the current innerData (the array/object the inner items
+      // belong to), not the original outer-loop array. Swap it in, restore
+      // when the inner pass completes.
+      const previousOuter = this.currentOuterLoopData
+      this.currentOuterLoopData = innerData
+
+      const rendered = innerArr.map((innerItem, innerIdx) => {
         return this.substituteForItem(innerBody, innerItem, innerIdx)
       }).join('')
+
+      this.currentOuterLoopData = previousOuter
+      return rendered
     })
   }
 
   /**
    * Substitutes {{...}} variables in `str` using `item` as the data context.
-   * Handles:
-   *   - {{.}} and {{.*}} primitive current-element tokens when item is a string
-   *   - {{prop}} and {{a.b.c}} property and dot-path access when item is an object
-   *   - {{loopIndex}} and {{loopNum}} auto-injected positional tokens
    *
-   * This is the single-item rendering primitive used by both outer and inner
-   * loop passes. Extracted from the original inline closures in parseTheTmplLoop.
+   * Three cases:
+   *
+   *   1. String item + primitive {{.}}/{{.*}} template:
+   *      direct text substitution (no CMS wrapping possible — this path only
+   *      runs when formatTemplateForProxyData has NOT wrapped the tag).
+   *
+   *   2. String item + non-primitive template:
+   *      can happen two ways: (a) a section iterating strings where
+   *      formatTemplateForProxyData has replaced {{.}}/{{.*}} with
+   *      {{spyneLoopKey}} + {{origKey}} inside a <spyne-cms-item> wrapper,
+   *      or (b) a non-proxy template with positional tokens only.
+   *      Build a context that satisfies both — spyneLoopKey = the string,
+   *      plus __cms__dataId / origKey looked up on the parent array when
+   *      proxy data is active.
+   *
+   *   3. Object item:
+   *      the conventional path — build a lookup object with the item's
+   *      properties plus positional tokens, substitute by property name
+   *      or dot-path.
    */
   substituteForItem(str, item, index) {
-    // Case 1: string item. {{.}} or {{.*}} expands to the string itself; any
-    // other placeholder falls through to the auto-injected positional tokens
-    // or renders empty.
+    // Case 1: string item with a primitive-tag template.
     if (typeof item === 'string') {
       if (DomElementTemplate.isPrimitiveTag(str)) {
         const escaped = item.replace(/\$/g, '$$$$') // $ -> $$ for replace() literal safety
         return str.replace(DomElementTemplate.swapParamsForTagsRE(), escaped)
       }
-      // String item with a non-primitive template — build a positional context.
-      const positional = { loopIndex: index, loopNum: index + 1 }
-      return this.substituteObject(str, positional)
+
+      // Case 2: string item with a non-primitive template.
+      const ctx = this.buildStringItemContext(item, index)
+      return this.substituteObject(str, ctx)
     }
 
-    // Case 2: object item. Build the lookup object (with CMS proxy metadata
-    // when applicable) and substitute by property name or dot-path.
+    // Case 3: object item.
     const dataObj = this.buildItemContext(item, index)
     return this.substituteObject(str, dataObj)
   }
 
   /**
-   * Builds the per-iteration lookup context for an object item, including
+   * Builds the per-iteration lookup context for a STRING item.
+   *
+   * Always includes:
+   *   - spyneLoopKey: the string itself (matches the CMS proxy wrapping,
+   *     which replaces {{.}}/{{.*}} inside string loops with {{spyneLoopKey}})
+   *   - loopIndex / loopNum: positional tokens
+   *
+   * When proxy data is active, additionally includes:
+   *   - __cms__dataId: the CMS identifier for the PARENT array (the string
+   *     items themselves are primitives and don't carry the id)
+   *   - origKey: the original key the CMS uses to address this specific
+   *     string within its parent, looked up via __cms__keyFor_<item>
+   */
+  buildStringItemContext(item, index) {
+    const context = {
+      spyneLoopKey: item,
+      loopIndex: index,
+      loopNum: index + 1
+    }
+
+    if (this.isProxyData === true) {
+      const outerData = this.currentOuterLoopData
+      if (outerData && typeof outerData === 'object') {
+        context.__cms__dataId = outerData.__cms__dataId || ''
+        const keyIdStr = `__cms__keyFor_${item}`
+        context.origKey = outerData[keyIdStr] !== undefined ? outerData[keyIdStr] : ''
+      } else {
+        context.__cms__dataId = ''
+        context.origKey = ''
+      }
+    }
+
+    return context
+  }
+
+  /**
+   * Builds the per-iteration lookup context for an OBJECT item, including
    * CMS-proxy metadata when this template is rendering proxied data.
    */
   buildItemContext(item, index) {
@@ -410,7 +519,7 @@ export class DomElementTemplate {
 
     if (this.isProxyData === true) {
       context.__cms__dataId = item.__cms__dataId
-      context.spyneLoopKey = item // matches the original primitive-path shape
+      context.spyneLoopKey = item
       context.loopIndex = index
       context.loopNum = index + 1
     }
@@ -448,26 +557,33 @@ export class DomElementTemplate {
    */
   parseTheTmplLoop(str, p1, p2, p3) {
     const outerBody = p3
-    let elData = DomElementTemplate.getNestedDataReducer(this.templateData, p2)
+    const elData = DomElementTemplate.getNestedDataReducer(this.templateData, p2)
 
     if (isNil(elData) === true || isEmpty(elData)) {
       return ''
     }
 
-    elData = Array.isArray(elData) ? elData : [elData]
+    // Stash the outer data so that per-iteration substitution can look up
+    // CMS proxy metadata (__cms__dataId, __cms__keyFor_*) that lives on the
+    // parent array object — not on individual string elements.
+    const previousOuter = this.currentOuterLoopData
+    this.currentOuterLoopData = elData
+
+    const elArr = Array.isArray(elData) ? elData : [elData]
 
     // Whether the outer body contains an inner loop is cheap to test and lets
     // us skip the inner-loop processing entirely for the common single-level case.
     const bodyHasInnerLoop = DomElementTemplate.hasLoop(outerBody)
 
-    const renderIteration = (item, index) => {
+    const rendered = elArr.map((item, index) => {
       const body = bodyHasInnerLoop
         ? this.processInnerLoop(outerBody, item)
         : outerBody
 
       return this.substituteForItem(body, item, index)
-    }
+    }).join('')
 
-    return elData.map(renderIteration).join('')
+    this.currentOuterLoopData = previousOuter
+    return rendered
   }
 }
