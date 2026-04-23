@@ -2,6 +2,34 @@ import { includes, __, ifElse, path, prop, reject, is, isNil, isEmpty } from 'ra
 import sanitizeHTML from '../utils/sanitize-html.js'
 import { SpyneAppProperties } from '../utils/spyne-app-properties.js'
 
+/**
+ * DomElementTemplate
+ *
+ * Mustache-compatible template engine used by ViewStream and DomElement for HTML rendering.
+ *
+ * Supported syntax:
+ *   {{key}}                          variable interpolation, HTML-escaped
+ *   {{key.path.to.value}}            dot-notation property access
+ *   {{#key}}...{{/key}}              array/object sections
+ *   {{.}}                            current element inside a loop
+ *   {{#}}...{{/}}                    top-level bare array (passed as `data`)
+ *
+ * Nesting:
+ *   DomElementTemplate supports exactly ONE level of nested array sections.
+ *   A template like {{#rows}}...{{#cells}}...{{/cells}}...{{/rows}} is supported.
+ *   Deeper nesting — {{#a}}{{#b}}{{#c}}...{{/c}}{{/b}}{{/a}} — is NOT supported.
+ *
+ *   When a template has deeper nesting, a warning is logged in debug mode and
+ *   the third-level loop is not processed. This is a deliberate design choice:
+ *   deep hierarchical rendering belongs in nested ViewStreams, not in templates.
+ *   Nested ViewStreams provide proper lifecycle semantics, isolated rendering,
+ *   and clearer architectural boundaries than arbitrarily-nested templates.
+ *
+ * Not currently supported in nested loops:
+ *   - CMS proxy metadata (__cms__dataId, __cms__keyFor_*). Inner-loop CMS
+ *     editing is a future enhancement; until then, content inside an inner
+ *     loop is rendered as read-only from the CMS perspective.
+ */
 export class DomElementTemplate {
   constructor(template, data = {}, opts = {}) {
     this.template = this.formatTemplate(template)
@@ -35,9 +63,9 @@ export class DomElementTemplate {
 
     const parseTmplLoopsRE = DomElementTemplate.parseTmplLoopsRE()
 
-    const parseTmplLoopFn =  this.parseTheTmplLoop.bind(this)
+    const parseTmplLoopFn = this.parseTheTmplLoop.bind(this)
 
-    const mapTmplLoop = (str, data) => {
+    const mapTmplLoop = (str) => {
       return str.replace(parseTmplLoopsRE, parseTmplLoopFn)
     }
 
@@ -182,22 +210,61 @@ export class DomElementTemplate {
   static getStringArray(template) {
     const strArr = template.split(DomElementTemplate.findTmplLoopsRE())
     const emptyRE = /^([\\n\s\W]+)$/
+    // findTmplLoopsRE has TWO capture groups (the full loop match, and the
+    // \2-backreferenced key name). When used with String.prototype.split, the
+    // second group is emitted into the result array as a leaked chunk.
+    //
+    // The chunks arrive in a predictable 3-step cycle:
+    //   index 0:                pre-text before the first loop
+    //   index 1: full match     the loop (keep)
+    //   index 2: group-2 leak   the loop's key name (discard)
+    //   index 3:                between-loops text
+    //   index 4: full match
+    //   index 5: group-2 leak
+    //   ...
+    // So any index i where i >= 2 and (i - 2) % 3 === 0 is a key-name leak
+    // that should not flow into the render pipeline.
+    const withoutLeaks = strArr.filter((_, i) => !(i >= 2 && (i - 2) % 3 === 0))
     const filterOutEmptyStrings = s => s.match(emptyRE)
-    const finalStr =  reject(filterOutEmptyStrings, strArr)
+    const finalStr = reject(filterOutEmptyStrings, withoutLeaks)
 
     return finalStr
   }
 
+  /**
+   * Regex that finds top-level loop sections, pairing each opening tag with a
+   * closing tag of the SAME NAME via the \2 backreference. This is what makes
+   * {{#rows}}<tr>{{#cells}}<td>{{.}}</td>{{/cells}}</tr>{{/rows}} match as a
+   * single outer loop rather than getting truncated at the inner {{/cells}}.
+   */
   static findTmplLoopsRE() {
-    return /({{#[\w.]+}}[\w\n\s\W]+?{{\/[\w.]+}})/gm
+    return /({{#([\w.]+)}}[\w\n\s\W]+?{{\/\2}})/gm
   }
 
   static parseTmplLoopsRE() {
     return /({{#([\w.]+)}})([\w\n\s\W]+?)({{\/\2}})/gm
   }
 
+  /**
+   * Regex for finding a single inner loop inside an outer loop's body.
+   * Identical in form to parseTmplLoopsRE, but created fresh to avoid
+   * shared-lastIndex bugs with global regexes when used in .replace callbacks.
+   */
+  static innerLoopRE() {
+    return /({{#([\w.]+)}})([\w\n\s\W]+?)({{\/\2}})/gm
+  }
+
   static swapParamsForTagsRE() {
     return /({{)(.*?)(}})/gm
+  }
+
+  /**
+   * Detects whether a template body contains any {{#key}}...{{/key}} pair.
+   * Used to decide whether the inner-loop pass is needed, and to detect
+   * two-level nesting for warning purposes.
+   */
+  static hasLoop(str) {
+    return DomElementTemplate.innerLoopRE().test(str)
   }
 
   removeThis() {
@@ -209,16 +276,14 @@ export class DomElementTemplate {
   }
 
   /**
-   *
    * @desc Returns a document fragment generated from the template and any added data.
    */
-
   renderDocFrag() {
     let html = DomElementTemplate.replaceImgPath(this.finalArr.join(''))
     if (this.testMode !== true) {
       html = sanitizeHTML(html)
     }
-    const isTableSubTag =   /^([^>]*?)(<){1}(\b)(thead|col|colgroup|tbody|td|tfoot|tr|th)(\b)([^\0]*)$/.test(html)
+    const isTableSubTag = /^([^>]*?)(<){1}(\b)(thead|col|colgroup|tbody|td|tfoot|tr|th)(\b)([^\0]*)$/.test(html)
     const el = isTableSubTag ? html : document.createRange().createContextualFragment(html)
 
     window.setTimeout(this.removeThis, 2)
@@ -262,76 +327,147 @@ export class DomElementTemplate {
     return templateStr
   }
 
-  parseTheTmplLoop(str, p1, p2, p3) {
-    const reDot = /(\.)/gm
-    const subStr = p3
-    let elData = DomElementTemplate.getNestedDataReducer(this.templateData, p2)
+  /**
+   * Resolves a single inner loop (one level down) inside an outer-loop body,
+   * using `parentItem` as the data context. If the inner body itself contains
+   * another loop, a debug-mode warning is logged and that deeper loop is not
+   * processed.
+   *
+   * Returns the body string with any inner loop expanded, ready for
+   * outer-level variable substitution.
+   */
+  processInnerLoop(bodyStr, parentItem) {
+    const innerRE = DomElementTemplate.innerLoopRE()
 
-    const arrayStringToObjAdapter = (d, str, i) => {
+    return bodyStr.replace(innerRE, (fullMatch, openTag, innerKey, innerBody /*, closeTag */) => {
+      // Detect disallowed second-level nesting inside the inner body.
+      if (DomElementTemplate.hasLoop(innerBody) === true) {
+        if (SpyneAppProperties.debug === true && this.testMode !== true) {
+          console.warn(
+            'Spyne Warning: DomElementTemplate supports one level of nested array loops. ' +
+            `A deeper nested loop was detected inside "{{#${innerKey}}}". ` +
+            'Consider restructuring via nested ViewStreams instead.'
+          )
+        }
+        // Strip unsupported deeper-level section tags so they don't emit as
+        // garbled variables during substitution below.
+        innerBody = innerBody.replace(/{{[#/][\w.]+}}/g, '')
+      }
+
+      let innerData = DomElementTemplate.getNestedDataReducer(parentItem, innerKey)
+
+      if (isNil(innerData) === true || isEmpty(innerData)) {
+        return ''
+      }
+
+      innerData = Array.isArray(innerData) ? innerData : [innerData]
+
+      return innerData.map((innerItem, innerIdx) => {
+        return this.substituteForItem(innerBody, innerItem, innerIdx)
+      }).join('')
+    })
+  }
+
+  /**
+   * Substitutes {{...}} variables in `str` using `item` as the data context.
+   * Handles:
+   *   - {{.}} and {{.*}} primitive current-element tokens when item is a string
+   *   - {{prop}} and {{a.b.c}} property and dot-path access when item is an object
+   *   - {{loopIndex}} and {{loopNum}} auto-injected positional tokens
+   *
+   * This is the single-item rendering primitive used by both outer and inner
+   * loop passes. Extracted from the original inline closures in parseTheTmplLoop.
+   */
+  substituteForItem(str, item, index) {
+    // Case 1: string item. {{.}} or {{.*}} expands to the string itself; any
+    // other placeholder falls through to the auto-injected positional tokens
+    // or renders empty.
+    if (typeof item === 'string') {
       if (DomElementTemplate.isPrimitiveTag(str)) {
-        return parseString(d, str, i)
+        const escaped = item.replace(/\$/g, '$$$$') // $ -> $$ for replace() literal safety
+        return str.replace(DomElementTemplate.swapParamsForTagsRE(), escaped)
       }
-
-      const createDataObj = () => {
-        const spyneLoopKey = d
-        const loopIndex = i
-        const loopNum = i + 1
-
-        if (this.isProxyData) {
-          const __cms__dataId = elData.__cms__dataId
-          const keyIdStr = `__cms__keyFor_${d}`
-          const origKey = elData[keyIdStr]
-          return { spyneLoopKey, __cms__dataId, origKey, loopIndex, loopNum, d }
-        }
-        return { spyneLoopKey, loopIndex, loopNum }
-      }
-
-      return parseObject(createDataObj(), str, i)
+      // String item with a non-primitive template — build a positional context.
+      const positional = { loopIndex: index, loopNum: index + 1 }
+      return this.substituteObject(str, positional)
     }
 
-    const parseString = (item, str, index, origIndex) => {
-      item = item.replace(/\$/g, '$$$$') // $ → $$
-      return str.replace(DomElementTemplate.swapParamsForTagsRE(), item)
+    // Case 2: object item. Build the lookup object (with CMS proxy metadata
+    // when applicable) and substitute by property name or dot-path.
+    const dataObj = this.buildItemContext(item, index)
+    return this.substituteObject(str, dataObj)
+  }
+
+  /**
+   * Builds the per-iteration lookup context for an object item, including
+   * CMS-proxy metadata when this template is rendering proxied data.
+   */
+  buildItemContext(item, index) {
+    const context = Object.assign({}, item, {
+      loopIndex: index,
+      loopNum: index + 1
+    })
+
+    if (this.isProxyData === true) {
+      context.__cms__dataId = item.__cms__dataId
+      context.spyneLoopKey = item // matches the original primitive-path shape
+      context.loopIndex = index
+      context.loopNum = index + 1
     }
 
-    // PARSING ARRAYS AND OBJECTS
-    const parseObject = (obj, str, i) => {
-      /// LOOP NUMBER VALUES AUTO ADDED
+    return context
+  }
 
-      // const loopIndex = i;
-      // const loopNum = i+1;
+  /**
+   * Replaces {{key}} and {{a.b.c}} tokens in `str` using `ctx` as the source.
+   */
+  substituteObject(str, ctx) {
+    const reDot = /(\.)/gm
+    const positional = { loopIndex: ctx.loopIndex, loopNum: ctx.loopNum }
 
-      const loopObj = (str, p1, p2) => {
-        // DOT SYNTAX CHECK
-        const hash = {
-          loopIndex: i,
-          loopNum: i + 1
-        }
+    const replacer = (match, p1, p2) => {
+      // Auto-injected positional tokens take precedence
+      if (positional[p2] !== undefined) return positional[p2]
 
-        // IF {{.}}
-        if (reDot.test(p2) === false && obj[p2] !== undefined) {
-          return hash[p2] !== undefined ? hash[p2] : obj[p2]
-        }
-
-        const dataReducedVal  = this.getDataValFromPathStr(p2, obj)
-        return hash[p2] !== undefined ? hash[p2] : dataReducedVal
+      // Simple key access
+      if (reDot.test(p2) === false && ctx[p2] !== undefined) {
+        return ctx[p2]
       }
-      return str.replace(DomElementTemplate.swapParamsForTagsRE(), loopObj)
+
+      // Dot-path access
+      return this.getDataValFromPathStr(p2, ctx)
     }
 
-    const mapStringData = (d, i) => typeof (d) === 'string' ? arrayStringToObjAdapter(d, subStr, i) : parseObject(d, subStr, i)
+    return str.replace(DomElementTemplate.swapParamsForTagsRE(), replacer)
+  }
+
+  /**
+   * Entry point for each top-level loop match. Extracts loop data, runs the
+   * inner-loop pass on the body for each iteration, then substitutes outer
+   * variables.
+   */
+  parseTheTmplLoop(str, p1, p2, p3) {
+    const outerBody = p3
+    let elData = DomElementTemplate.getNestedDataReducer(this.templateData, p2)
 
     if (isNil(elData) === true || isEmpty(elData)) {
       return ''
     }
 
-    if (elData.length === undefined) {
-      elData = [elData]
-    }
-
-    // convert to array if is string
     elData = Array.isArray(elData) ? elData : [elData]
 
-    return elData.map(mapStringData).join('')
+    // Whether the outer body contains an inner loop is cheap to test and lets
+    // us skip the inner-loop processing entirely for the common single-level case.
+    const bodyHasInnerLoop = DomElementTemplate.hasLoop(outerBody)
+
+    const renderIteration = (item, index) => {
+      const body = bodyHasInnerLoop
+        ? this.processInnerLoop(outerBody, item)
+        : outerBody
+
+      return this.substituteForItem(body, item, index)
+    }
+
+    return elData.map(renderIteration).join('')
   }
 }
