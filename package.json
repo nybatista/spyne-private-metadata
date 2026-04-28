@@ -1,6 +1,6 @@
 {
   "name": "spyne",
-  "version": "0.22.1",
+  "version": "0.22.2",
   "description": "Frontend framework built on View–Behavior–Logic (VBL) for clear structure, explicit behavior, and code that humans and AI can reason about",
   "sideEffects": true,
   "engines": {
@@ -93,7 +93,7 @@
   "dependencies": {
     "dompurify": "^3.1.6",
     "fs": "^0.0.1-security",
-    "ramda": "^0.30.1",
+    "ramda": "^0.32.0",
     "rxjs": "^7.8.1"
   }
 }
