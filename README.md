@@ -1,4 +1,6 @@
-# spyne
+# spyne private metadata
+
+### This is the metadata-instrumented fork of spyne-private; pulls from upstream periodically; never merges back
 
 [![NPM version](https://img.shields.io/npm/v/spyne.svg?longCache=true&style=flat-square)](https://www.npmjs.com/package/spyne)
 [![GitHub license](https://img.shields.io/github/license/spynejs/spyne.svg?longCache=true&style=flat-square)](https://github.com/spynejs/spyne/blob/master/LICENSE)

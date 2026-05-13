@@ -1,6 +1,6 @@
 {
   "name": "spyne",
-  "version": "0.23.0",
+  "version": "0.23.0-metadata.0",
   "description": "Frontend framework built on View–Behavior–Logic (VBL) for clear structure, explicit behavior, and code that humans and AI can reason about",
   "sideEffects": true,
   "engines": {
@@ -25,6 +25,9 @@
     "start": "webpack-dev-server --hot",
     "build": "webpack --config webpack.config.cjs --mode production",
     "build:esm": "rollup --config rollup.config.js",
+    "setTo:src": "node repo-scripts/maint.js setToSrcFiles",
+    "setTo:esm": "node repo-scripts/maint.js setToEsm",
+    "update:version": "node repo-scripts/update-version.mjs",
     "dev": "webpack --config webpack.config.cjs --mode development",
     "stats": "webpack --profile --json --optimize-minimize --mode production --env build > stats.json",
     "docs": "jsdoc --readme README.md -d docs -c docs/jsdoc.config.json -r",

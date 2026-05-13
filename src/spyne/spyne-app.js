@@ -4,9 +4,10 @@ import { SpyneUtilsChannelRoute } from './utils/spyne-utils-channel-route.js'
 import { SpyneAppProperties } from './utils/spyne-app-properties.js'
 import { sanitizeHTMLConfigure } from './utils/sanitize-html.js'
 import { sanitizeDataConfigure } from './utils/sanitize-data.js'
+import { MetadataSubscriber } from './utils/metadata-subscriber.js'
 
 const _channels = new ChannelsMap()
-const version = '0.23.0'
+const version = '0.23.0-metadata.0'
 
 class SpyneApplication {
   /**
@@ -41,7 +42,7 @@ class SpyneApplication {
   init(config = {}, testMode = false) {
     // this.channels = new ChannelsMap();
     /*!
-     * Spyne 0.23.0
+     * Spyne 0.23.0-metadata.0
      * https://spynejs.org
      *
      * @license
@@ -131,6 +132,8 @@ class SpyneApplication {
     nullHolder.appendToDom(document.body);
     nullHolder.props.el.style.cssText = 'display:none; opacity:0; pointer-events:none;';
     _channels.init();
+
+    new MetadataSubscriber().appendToNull();
 
     if (SpyneAppProperties.config.debug===true){
        window.Spyne = {version};

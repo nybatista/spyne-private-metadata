@@ -3,6 +3,7 @@ import { SpyneChannelUI } from './spyne-channel-ui.js'
 import { SpyneChannelWindow } from './spyne-channel-window.js'
 import { SpyneChannelLifecycle } from './spyne-channel-lifecycle.js'
 import { SpyneChannelAI } from './spyne-channel-ai.js'
+import { SpyneChannelMetadata } from './spyne-channel-metadata.js'
 
 import { Subject } from 'rxjs'
 import { ChannelProxy } from './channel-proxy.js'
@@ -88,6 +89,10 @@ export class ChannelsMap {
     this.aiStream = new SpyneChannelAI()
     _map.set('CHANNEL_AI', this.aiStream)
 
+    this.metadataStream = new SpyneChannelMetadata()
+    _map.set('CHANNEL_METADATA', this.metadataStream)
+
+    this.metadataStream.initializeStream()
     this.routeStream.initializeStream()
     this.domStream.initializeStream()
   }
