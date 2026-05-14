@@ -1,4 +1,6 @@
 import { baseCoreMixins } from '../utils/mixins/base-core-mixins.js'
+import { MetadataUtilsTraits } from '../metadata/metadata-utils-traits.js'
+import { MetdataSchemaViewstreamTraits } from '../metadata/metdata-schema-viewstream-traits.js'
 import { SpyneAppProperties } from '../utils/spyne-app-properties.js'
 import { deepMerge } from '../utils/deep-merge.js'
 import { safeClone } from '../utils/safe-clone.js'
@@ -72,7 +74,7 @@ export class ViewStream {
         animateInTime: 0.5,
         animateOut: false,
         animateOutTime: 0.5,
-        sendLifecyleEvents: false,
+        sendLifecyleEvents: true,
         hashId: `#${id}`,
         id$: `#${id}`,
         viewClass: ViewStreamElement,
@@ -110,6 +112,7 @@ export class ViewStream {
     this.isDevMode = ViewStream.isDevMode()
     this.props.addedChannels = []
     this.checkIfElementAlreadyExists()
+    this._metadata = MetdataSchemaViewstreamTraits.metdataSchemaViewStream$ViewSInitObj()
   }
 
   // ============================= HASH KEY AND SPIGOT METHODS==============================
@@ -118,6 +121,10 @@ export class ViewStream {
   }
 
   get attributesArray() {
+    return ViewStream.getAttributes()
+  }
+
+  static getAttributes() {
     return [
       // Global Attributes
       'accesskey', 'class', 'contenteditable', 'dir', 'draggable', 'hidden', 'id', 'lang', 'spellcheck', 'style', 'tabindex', 'title', 'translate',
@@ -335,6 +342,10 @@ export class ViewStream {
   }
 
   addParentStream(obs, attachData) {
+    // console.log('parent stream ', attachData, this.constructor.name); // METADATA
+
+    // this._metadata.parent  =
+
     const filterOutNullData = (data) => data !== undefined && data.action !==
         undefined
     const checkIfDisposeOrFadeout = (d) => {
@@ -355,6 +366,7 @@ export class ViewStream {
   }
 
   addChildStream(obs$) {
+    // console.log('CHILD stream ', {childViewName, childVsid}, this.constructor.name); // METADATA
     const filterOutNullData = (data) => data !== undefined && data.action !==
         undefined
     const child$ = obs$.pipe(
@@ -635,7 +647,13 @@ export class ViewStream {
   }
 
   // ====================== ATTACH STREAM AND DOM DATA AGGREGATORS==========================
-  exchangeViewsWithChild(childView, attachData) {
+  exchangeViewsWithChild(childView, attachData, parentMetadata) {
+    childView._metadata.addLifecycle('render', attachData.attachType, parentMetadata.method, parentMetadata.vsid)
+    // console.log("child view is ", childView, {attachData, parentMetadata} ) // METADATA
+
+    const { vsid, id, name } = childView?.props
+    this._metadata.children.push({ vsid, id, name })
+
     this.addChildStream(childView.sourceStreams.toParent$)
     childView.addParentStream(this.sourceStreams.toChild$, attachData)
   }
@@ -706,7 +724,21 @@ export class ViewStream {
    *
    * */
   appendView(v, query) {
-    this.exchangeViewsWithChild(v, this.setAttachData('appendChild', query))
+    const callerName = MetadataUtilsTraits.metadataUtils$getFrameworkCallerName('appendView')
+    v.lifecyleMethodRendered = callerName
+    v._metadata.parent.name = this.constructor.name
+    v._metadata.parent.vsid = this.props.vsid
+    v._metadata.parent.id = this.props.id
+
+    const parentMetadata = {
+      method: callerName,
+      vsid: v.props.vsid,
+      name: this.constructor.name
+    }
+
+    // console.log("caller name is ",callerName, this.constructor.name, v.constructor.name, v.props.vsid); // METADATA
+
+    this.exchangeViewsWithChild(v, this.setAttachData('appendChild', query), parentMetadata)
   }
 
   appendViewAfter(v, query) {
@@ -831,8 +863,17 @@ export class ViewStream {
     this.initializeChannels()
     this.viewsStreamBroadcaster = new ViewStreamBroadcaster(this.props, this.broadcastEvents.bind(this))
     this.afterBroadcastEvents()
+    this._metadata.broadcastEvents = this.viewsStreamBroadcaster?._metadata?.payloads
+
+    // console.log("braodcastEvents ",  this._metadata, this.viewsStreamBroadcaster); // METADATA
+    // console.log("\n======================")
+    // console.log("metadata ", JSON.stringify(this._metadata, null, 2))
+    // console.log("\n======================")
 
     this._postRenderedCalled = true
+
+    const delaySendMetadata = () => this.sendInfoToChannel('CHANNEL_METADATA', this._metadata.toJSON(), 'CHANNEL_METADATA_SEND_FOR_COLLECT_EVENT')
+    window.setTimeout(delaySendMetadata, 200)
   }
 
   addTraits(traits) {
@@ -852,6 +893,11 @@ export class ViewStream {
     if (this.isDevMode === true) {
       const pullActionsFromList = (arr) => arr[0]
       const nestedActionsArr = this.addActionListeners()
+      this._metadata.actionListeners = nestedActionsArr
+      this._metadata.props = this.props
+      // console.log('this after broadcast ', this);
+
+      // console.log("NESTED ACTIONS ARR ", this._metadata)  // METADATA
 
       const actionsArr = nestedActionsArr.map(pullActionsFromList)
 
@@ -875,7 +921,7 @@ export class ViewStream {
           ViewStream.checkIfActionsAreRegistered.bind(this)(this.props.addedChannels, actionsArr)
         }
       }
-      this.setTimeout(delayForProxyChannelResets, 500)
+      this.setTimeout(delayForProxyChannelResets, 300)
     }
   }
 
@@ -1076,7 +1122,9 @@ export class ViewStream {
     const data = { payload, action }
 
     try {
-      data.srcElement = compose(pick(['id', 'vsid', 'class', 'tagName']), prop('props'))(this)
+      data.srcElement = compose(pick(['id', 'vsid', 'traits', 'channels', 'class', 'tagName']), prop('props'))(this)
+      // console.log("DATA IS ",data, this.props); // METADATA
+
       if (this.checkIfChannelExists(channelName) === true) {
         if (/CHANNEL_LIFECYCLE/.test(action) === false) {
           Object.defineProperties(data, {

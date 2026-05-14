@@ -1,11 +1,13 @@
 import { ViewStream } from '../views/view-stream.js'
+import { MetadataOutputTraits } from './metadata-output-traits.js'
 
-export class MetadataSubscriber extends ViewStream {
+export class MetadataOutput extends ViewStream {
   constructor(props = {}) {
     props.id = 'codemap-runtime'
     props.tagName = 'script'
     props.type = 'application/json'
     props.channels = ['CHANNEL_METADATA']
+    props.traits = [MetadataOutputTraits]
 
     // props.template = `<script id="codemap-runtime">Metadata Subscriber</script>`;
 
@@ -15,15 +17,8 @@ export class MetadataSubscriber extends ViewStream {
   addActionListeners() {
     // return nexted array(s)
     return [
-      ['CHANNEL_METADATA_INIT_EVENT', 'onInitMetadata']
+      ['CHANNEL_METADATA_INIT_EVENT', 'metadataOutput$OnEmit']
     ]
-  }
-
-  onInitMetadata(e) {
-    const { payload } = e
-    console.log('payload', payload)
-
-    this.props.el$.el.innerHTML = JSON.stringify(payload)
   }
 
   broadcastEvents() {

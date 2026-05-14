@@ -20,8 +20,17 @@ export class ViewStreamBroadcaster {
   constructor(props, broadcastFn) {
     this.addMixins()
     this.props = props
+    this._metadata = { payloads:[] }
     this.broadcastFn = broadcastFn
     this.broadcaster(this.broadcastFn)
+  }
+
+  addMetadataPayload(payload = {}) {
+    this._metadata.payloads.push(payload)
+  }
+
+  get metdata() {
+    return this._metadata
   }
 
   addDblClickEvt(q) {
@@ -113,6 +122,10 @@ export class ViewStreamBroadcaster {
 
       const channelPayload = channelPayloads[getValidChannel(channel)]
       // run payload
+
+      // console.log("observable, data ", {observable, data}) // METADATA
+      this.addMetadataPayload(data)
+
       channelPayload(observable, data)
     }
     const queryIsNil = query === undefined || query.length <= 0

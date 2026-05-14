@@ -1,4 +1,5 @@
 import { Channel } from './channel.js'
+import { MetadataTraits } from '../metadata/metadata-traits.js'
 
 export class SpyneChannelMetadata extends Channel {
   /**
@@ -19,14 +20,15 @@ export class SpyneChannelMetadata extends Channel {
 
   constructor(props = {}) {
     props.replay = true
+    props.traits = [MetadataTraits]
+    props._metadata = { componentInstances: [] }
+
     super('CHANNEL_METADATA', props)
   }
 
   onRegistered() {
-    console.log('metadata channel registered')
-
     const initData = {
-      $codemapVersion: '0.1.0',
+      $codemapVersion: '0.1.1',
       $emittedBy: 'SpyneChannelMetadata',
       $emittedAt: '2026-05-13T14:30:00.000Z',
       $source: 'runtime',
@@ -39,13 +41,22 @@ export class SpyneChannelMetadata extends Channel {
     const delayer = () => this.sendChannelPayload('CHANNEL_METADATA_INIT_EVENT', initData)
 
     requestAnimationFrame(delayer)
+
+    const onCheckMetadata = () => {
+      console.log('components len ', this.props._metadata.componentInstances.length)
+      // console.log("components ",JSON.stringify(this.props._metadata.componentInstances, null, 2))
+      console.log('components ', this.props._metadata.componentInstances)
+    }
+
+    window.setTimeout(onCheckMetadata, 1500)
   }
 
   addRegisteredActions() {
     return [
       'CHANNEL_METADATA_INIT_EVENT',
       'CHANNEL_METADATA_RENDERED_EVENT',
-      'CHANNEL_METADATA_DISPOSED_EVENT'
+      'CHANNEL_METADATA_DISPOSED_EVENT',
+      ['CHANNEL_METADATA_SEND_FOR_COLLECT_EVENT', 'metadata$AddViewstreamMetadata']
     ]
   }
 

@@ -148,7 +148,10 @@ export class ChannelPayloadFilter {
       return { selector, propFilters, debugLabel, filters, testMode, filtersAreEmpty }
     }
 
-    return allPass(filtersArr)
+    const curriedAllPass =  allPass(filtersArr)
+    curriedAllPass.filters = filters
+    curriedAllPass.selector = selector
+    return curriedAllPass
   }
 
   static filterData(filterJson, filterdebugLabel) {
