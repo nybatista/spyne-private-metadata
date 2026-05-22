@@ -726,9 +726,16 @@ export class ViewStream {
   appendView(v, query) {
     const callerName = MetadataUtilsTraits.metadataUtils$getFrameworkCallerName('appendView')
     v.lifecyleMethodRendered = callerName
-    v._metadata.parent.name = this.constructor.name
-    v._metadata.parent.vsid = this.props.vsid
-    v._metadata.parent.id = this.props.id
+
+    v._metadata.parent = {
+      name: this.constructor.name,
+      vsid: this.props.vsid,
+      id: this.props.id
+    }
+
+    // v._metadata.parent.name = this.constructor.name
+    // v._metadata.parent.vsid = this.props.vsid
+    // v._metadata.parent.id = this.props.id
 
     const parentMetadata = {
       method: callerName,

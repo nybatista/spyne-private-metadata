@@ -27,7 +27,7 @@ export class SpyneChannelMetadata extends Channel {
   }
 
   onRegistered() {
-    const initData = {
+    /*    const initData = {
       $codemapVersion: '0.1.1',
       $emittedBy: 'SpyneChannelMetadata',
       $emittedAt: '2026-05-13T14:30:00.000Z',
@@ -36,16 +36,21 @@ export class SpyneChannelMetadata extends Channel {
       componentInstances: [],
       syncMoments: [],
       channelSubscribers: []
-    }
+    } */
 
-    const delayer = () => this.sendChannelPayload('CHANNEL_METADATA_INIT_EVENT', initData)
+    // const delayer = () => this.sendChannelPayload('CHANNEL_METADATA_INIT_EVENT', initData)
 
-    requestAnimationFrame(delayer)
+    // requestAnimationFrame(delayer)
 
     const onCheckMetadata = () => {
-      console.log('components len ', this.props._metadata.componentInstances.length)
+      // console.log('app prps ',SpyneAppProperties.listRegisteredChannels())
+
+      // console.log('channel actions ',SpyneAppProperties.getChannelActions('CHANNEL_ROUTE'))
+      // console.log('components len ', this.props._metadata.componentInstances.length)
       // console.log("components ",JSON.stringify(this.props._metadata.componentInstances, null, 2))
-      console.log('components ', this.props._metadata.componentInstances)
+      // console.log('components ', this.props._metadata.componentInstances)
+      this.metadata$AddChannelData()
+      this.metadata$OnRoute()
     }
 
     window.setTimeout(onCheckMetadata, 1500)

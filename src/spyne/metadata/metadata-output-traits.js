@@ -17,12 +17,12 @@ export class MetadataOutputTraits extends SpyneTrait {
 
     // console.log('payload is ', { payload })
 
-    console.log(
+    /*    console.log(
 
         `%c${JSON.stringify(payload, null, 2)}`,
 
         'color: #d8a289; font-size: 13px; line-height: 1.2; font-family: Menlo, Consolas, monospace;'
 
-    )
+    ) */
   }
 }

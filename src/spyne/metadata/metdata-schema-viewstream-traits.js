@@ -1,4 +1,5 @@
 import { SpyneTrait } from '../utils/spyne-trait.js'
+import { ChannelPayloadFilter } from '../utils/channel-payload-filter.js'
 import {
   defaultTo,
   isNil,
@@ -24,7 +25,7 @@ export class MetdataSchemaViewstreamTraits extends SpyneTrait {
   static metdataSchemaViewStream$ViewSInitObj() {
     const store = {
       props: {},
-      parent: {},
+      parent: null,
       children: [],
       broadcastEvents: [],
       actionListeners: [],
@@ -46,12 +47,12 @@ export class MetdataSchemaViewstreamTraits extends SpyneTrait {
       },
 
       set parent(val) {
+        if (isNil(val) || isEmpty(val)) {
+          return
+        }
         store.parent = {
-
-          ...store.parent,
-
-          ...(val || {})
-
+          ...(store.parent || {}),
+          ...val
         }
       },
 
@@ -184,6 +185,11 @@ export class MetdataSchemaViewstreamTraits extends SpyneTrait {
   }
 
   static metdataSchemaViewStream$GetPayloadFilterMetadata(payloadFilter) {
+    const filterType = typeof payloadFilter
+    if (filterType === 'string') {
+      payloadFilter = new ChannelPayloadFilter(payloadFilter)
+    }
+
     return compose(
       reject(isNil),
       pick(['selector', 'filters']),
