@@ -106,6 +106,10 @@ class SpyneAppPropertiesClass {
   }
 
   setProp(key, val, isTemp = false) {
+    if (!_config.ephemeralProps){
+      console.warn('SPYNE WARNING, Single Params in SpyneAppProperties has reset');
+      _config.ephemeralProps = {};
+    }
     if (isTemp) {
       _config.ephemeralProps[key] = val;
       return val;
@@ -116,6 +120,11 @@ class SpyneAppPropertiesClass {
   }
 
   getProp(key) {
+    if (!_config.ephemeralProps){
+      console.warn('SPYNE WARNING, Single Params in SpyneAppProperties has reset');
+      _config.ephemeralProps = {};
+    }
+
     if (_config.ephemeralProps.hasOwnProperty(key)) {
       const tempVal = _config.ephemeralProps[key];
       delete _config.ephemeralProps[key];
