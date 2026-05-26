@@ -242,6 +242,14 @@ class SpyneAppPropertiesClass {
     return _excludeChannelsFromConsole
   }
 
+  get untrackedChannelsList(){
+    return _excludeChannelsFromConsole;
+  }
+
+  get isCodemapBuild(){
+    return _config.isCodemapBuild
+  }
+
   // Setter for _excludeChannelsFromConsole
   set excludeChannelsFromConsole(value) {
     if (typeof value === 'string') {

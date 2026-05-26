@@ -75,6 +75,7 @@ class SpyneApplication {
       scrollLockY: 0,
       debug: false,
       strict: false,
+      isCodemapBuild: true,
       baseHref: undefined,
       IMG_PATH: imgPath,
       pluginMethods:{

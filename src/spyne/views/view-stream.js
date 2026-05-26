@@ -648,11 +648,12 @@ export class ViewStream {
 
   // ====================== ATTACH STREAM AND DOM DATA AGGREGATORS==========================
   exchangeViewsWithChild(childView, attachData, parentMetadata) {
-    childView._metadata.addLifecycle('render', attachData.attachType, parentMetadata.method, parentMetadata.vsid)
-    // console.log("child view is ", childView, {attachData, parentMetadata} ) // METADATA
-
-    const { vsid, id, name } = childView?.props
-    this._metadata.children.push({ vsid, id, name })
+    if (childView?._metadata && parentMetadata) {
+      childView._metadata.addLifecycle('render', attachData.attachType, parentMetadata.method, parentMetadata.vsid)
+      // console.log("child view is ", childView, {attachData, parentMetadata} ) // METADATA
+      const { vsid, id, name } = childView?.props
+      this._metadata.children.push({ vsid, id, name })
+    }
 
     this.addChildStream(childView.sourceStreams.toParent$)
     childView.addParentStream(this.sourceStreams.toChild$, attachData)
